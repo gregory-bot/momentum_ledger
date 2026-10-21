@@ -1,14 +1,14 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Broadcast } from "./components/Broadcast";
 import { CatchUpDialog } from "./components/CatchUpDialog";
-import { OnAirFeed, OverlayInspector } from "./components/Feeds";
-import { Header } from "./components/Header";
-import { TrustPanel } from "./components/TrustPanel";
+import { InsightTabs } from "./components/InsightTabs";
+import { ProofPanel } from "./components/ProofPanel";
+import { TopBar } from "./components/TopBar";
 import { ViewerPanel } from "./components/ViewerPanel";
 import { useGraphicsQueue } from "./hooks/useGraphicsQueue";
 import { useMatchStream } from "./hooks/useMatchStream";
 import { api } from "./lib/api";
-import type { AppConfig, CatchUp, Playback, Viewer } from "./lib/types";
+import type { AppConfig, CatchUp, Overlay, Playback, Viewer } from "./lib/types";
 
 // Multiview opens three extra streams; load its code only when someone asks for it.
 const Multiview = lazy(() => import("./components/Multiview"));
@@ -34,6 +34,7 @@ export default function App() {
   const [multiview, setMultiview] = useState<Playback | null>(null);
   const [catchUp, setCatchUp] = useState<{ data: CatchUp | null; error: string | null } | null>(null);
   const [activeSpeed, setActiveSpeed] = useState(playback.speed);
+  const [selectedId, setSelectedId] = useState<string | undefined>();
   const multiRef = useRef<HTMLDivElement>(null);
 
   const stream = useMatchStream();
@@ -47,7 +48,11 @@ export default function App() {
     return () => ctrl.abort();
   }, []);
 
+  const select = useCallback((o: Overlay) => setSelectedId(o.id), []);
+  const selected = stream.overlays.find((o) => o.id === selectedId) ?? stream.overlays[0];
+
   const watch = useCallback(() => {
+    setSelectedId(undefined);
     setActiveSpeed(playback.speed);
     stream.start(api.streamUrl(viewer, playback));
   }, [playback, stream, viewer]);
@@ -88,19 +93,23 @@ export default function App() {
 
   return (
     <>
-      <Header services={config.services} />
+      <TopBar meta={config.meta} services={config.services} status={stream.status} />
       <main className="layout">
-        <Broadcast meta={config.meta} tick={stream.tick} trail={stream.trail} onAir={onAir} status={stream.status} />
-        <aside className="side">
-          <ViewerPanel config={config} viewer={viewer} playback={playback} onViewer={setViewer} onPlayback={setPlayback}
-            onWatch={watch} onCatchUp={openCatchUp} onMultiview={openMultiview} />
-          <TrustPanel trust={stream.trust} counts={stream.counts} />
+        <div className="area-stage">
+          <Broadcast meta={config.meta} tick={stream.tick} trail={stream.trail} onAir={onAir} onSelect={select} />
+        </div>
+        <aside className="area-side">
+          <ViewerPanel config={config} viewer={viewer} playback={playback} live={stream.status === "live"}
+            onViewer={setViewer} onPlayback={setPlayback} onWatch={watch} onCatchUp={openCatchUp} onMultiview={openMultiview} />
+          <InsightTabs overlays={stream.overlays} trust={stream.trust} counts={stream.counts}
+            selectedId={selected?.id} onSelect={select} />
         </aside>
-        <OnAirFeed overlays={stream.overlays} />
-        <OverlayInspector overlay={stream.overlays[0]} />
-        <div ref={multiRef} className="full">
+        <div className="area-proof">
+          <ProofPanel overlay={selected} />
+        </div>
+        <div ref={multiRef} className="area-multi">
           {multiview && (
-            <Suspense fallback={<section className="card">Loading multiview…</section>}>
+            <Suspense fallback={<section className="card">Loading…</section>}>
               <Multiview config={config} playback={multiview} />
             </Suspense>
           )}
