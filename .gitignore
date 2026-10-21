@@ -1,9 +1,18 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Secrets and local config
 .env
+.env.local
 functions/local.settings.json
+
+# Build artefacts
 functions/momentum/
 .DS_Store
-scratch_*.py

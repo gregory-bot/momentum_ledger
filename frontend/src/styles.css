@@ -151,6 +151,7 @@ select:focus, input:focus, button:focus-visible { outline: 2px solid var(--blue)
 .tr-inj { display: inline-block; margin-top: 4px; font-size: 10px; padding: 1px 7px; border-radius: 999px; background: rgba(251, 191, 36, .15); color: var(--gold); }
 
 .feed .list li { display: grid; grid-template-columns: 44px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.feed .list li.empty { display: block; border: 0; }
 .feed .min { font-weight: 700; color: var(--blue-2); font-variant-numeric: tabular-nums; }
 .feed .kind { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 pre { margin: 0; max-height: 440px; overflow: auto; font: 12px/1.5 "JetBrains Mono", monospace; color: #bcd0f7; white-space: pre-wrap; word-break: break-word; }

@@ -13,7 +13,7 @@ az deployment group create -g "$RG" -f "$ROOT/infra/main.bicep" -o none
 FUNC=$(az deployment group show -g "$RG" -n main --query properties.outputs.functionApp.value -o tsv)
 
 echo "Publishing Function App $FUNC..."
-rm -rf "$ROOT/functions/momentum" && cp -R "$ROOT/momentum" "$ROOT/functions/momentum"
+rm -rf "$ROOT/functions/momentum" && cp -R "$ROOT/backend/momentum" "$ROOT/functions/momentum"
 (cd "$ROOT/functions" && func azure functionapp publish "$FUNC" --python)
 
 echo "Building and deploying the web app to Container Apps..."

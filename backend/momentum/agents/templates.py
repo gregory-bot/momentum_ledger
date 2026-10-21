@@ -135,7 +135,7 @@ def phrase_key(insight: Insight) -> str:
 
 def club_stance(insight: Insight, club: str | None) -> str | None:
     """'for' when the moment is good news for the viewer's club, 'against' when it is a warning."""
-    if not club or insight.team is None or insight.kind in ("half_time", "full_time", "player_card"):
+    if not club or insight.team is None or insight.kind in ("half_time", "full_time", "player_card", "speed_alert"):
         return None
     good = insight.team == club
     f = insight.facts
