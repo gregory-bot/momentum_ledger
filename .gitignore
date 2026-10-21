@@ -11,8 +11,8 @@ frontend/dist/
 # Secrets and local config
 .env
 .env.local
-functions/local.settings.json
+backend/functions/local.settings.json
 
 # Build artefacts
-functions/momentum/
+backend/functions/momentum/
 .DS_Store

@@ -152,15 +152,15 @@ momentum_ledger/
 │   │   └── __main__.py          CLI
 │   ├── tests/                   39 tests
 │   ├── data/match_seed7.json    sample synthetic match
+│   ├── functions/               Azure Functions: Event Hubs trigger → verified overlays in Cosmos DB
+│   ├── infra/main.bicep         infrastructure as code: every Azure resource
+│   ├── scripts/deploy.sh        provision + deploy
 │   └── requirements.txt
 ├── frontend/                    React 19 · TypeScript · Vite
 │   └── src/
 │       ├── components/          Broadcast, Pitch, GraphicLayer, ViewerPanel, TrustPanel, Feeds, Multiview, CatchUpDialog
 │       ├── hooks/               useMatchStream (SSE, frame-batched) · useGraphicsQueue
 │       └── lib/                 typed API client + shared types
-├── functions/                   Azure Functions: Event Hubs trigger → verified overlays in Cosmos DB
-├── infra/main.bicep             all Azure resources
-├── scripts/deploy.sh            provision + deploy
 └── Dockerfile                   single container: React build served by FastAPI
 ```
 
@@ -213,7 +213,7 @@ python -m momentum serve --port 8010
 
 ```bash
 cp backend/.env.example backend/.env    # optional: point local runs at Azure services
-./scripts/deploy.sh                     # Bicep → Event Hubs, Cosmos DB, Azure OpenAI, Translator, Functions, Container Apps
+./backend/scripts/deploy.sh                     # Bicep → Event Hubs, Cosmos DB, Azure OpenAI, Translator, Functions, Container Apps
 cd backend && python -m momentum publish --speed 30   # stream a match into Event Hubs
 ```
 
@@ -222,7 +222,7 @@ cd backend && python -m momentum publish --speed 30   # stream a match into Even
 | **Azure OpenAI** (Microsoft Foundry deployment) | Narrator agent, LLM judge, fallback translator | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT` (+ key or Entra ID) |
 | **Azure AI Translator** | Any language, with names kept verbatim | `AZURE_TRANSLATOR_KEY`, `AZURE_TRANSLATOR_REGION` |
 | **Azure Event Hubs** | Real-time event ingest | `EVENTHUB_CONNECTION`, `EVENTHUB_NAME` |
-| **Azure Functions** (Flex Consumption) | Event-driven processing, stateless replay | `functions/` |
+| **Azure Functions** (Flex Consumption) | Event-driven processing, stateless replay | `backend/functions/` |
 | **Azure Cosmos DB** (serverless) | Durable ledger and overlay store | `COSMOS_ENDPOINT` (+ key or Entra ID) |
 | **Azure Container Apps** | Web app + API, autoscaling | `Dockerfile` |
 | **Application Insights** | Telemetry | provisioned by Bicep |
