@@ -52,9 +52,13 @@ class FaultInjector:
                 continue
             pattern = rf"(?<![\d.]){re.escape(f.display)}(?![\d.])"
             if re.search(pattern, text):
-                bumped = f.value + (2 if f.precision == 0 else 1.3)
-                new = f"{bumped:.{f.precision}f}" if f.precision else str(int(bumped))
-                return re.sub(pattern, new, text, count=1)
+                taken = {g.display for g in insight.facts.values()}
+                bumped = f.value
+                while True:  # a "wrong" number that happens to equal another fact is not a hallucination
+                    bumped += 2 if f.precision == 0 else 1.3
+                    new = f"{bumped:.{f.precision}f}" if f.precision else str(int(bumped))
+                    if new not in taken:
+                        return re.sub(pattern, new, text, count=1)
         return None
 
     def _wrong_player(self, text: str, insight: Insight, lang: str) -> str | None:

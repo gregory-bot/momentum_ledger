@@ -19,7 +19,7 @@ from ..ledger import Ledger, QueryError
 from ..llm import AzureLLM, LLMError
 from ..models import Insight, MatchMeta
 
-NUMBER = re.compile(r"(?<![\w.])\d+(?:[.,]\d+)?")
+NUMBER = re.compile(r"(?<![\w.])-?\d+(?:[.,]\d+)?")
 SCALE = re.compile(r"/100\b")
 
 OUT_OF_SCOPE = {
@@ -118,7 +118,7 @@ class Verifier:
             if isinstance(f.value, (int, float)) and not isinstance(f.value, bool):
                 allowed.append((float(f.value), f.precision))
         bad = []
-        for token in NUMBER.findall(SCALE.sub("", text)):
+        for token in numbers_in(text):
             n = float(token.replace(",", "."))
             if not any(abs(n - v) <= 0.5 * 10 ** -max(p, _decimals(token)) + 1e-9 for v, p in allowed):
                 bad.append(token)
@@ -156,6 +156,18 @@ class Verifier:
         if out.get("supported", False):
             return Check("judge", True, "meaning consistent with facts")
         return Check("judge", False, "; ".join(out.get("issues", [])) or "judge found unsupported meaning")
+
+
+def numbers_in(text: str) -> list[str]:
+    """Numeric tokens; a minus counts as a sign only after a space or bracket, so '1-2' is two numbers."""
+    text = SCALE.sub("", text)
+    out = []
+    for m in NUMBER.finditer(text):
+        token = m.group(0)
+        if token.startswith("-") and m.start() > 0 and text[m.start() - 1] not in " ([":
+            token = token[1:]
+        out.append(token)
+    return out
 
 
 def _decimals(token: str) -> int:
