@@ -158,7 +158,7 @@ momentum_ledger/
 │   └── requirements.txt
 ├── frontend/                    React 19 · TypeScript · Vite
 │   └── src/
-│       ├── components/          Broadcast, Pitch, GraphicLayer, ViewerPanel, TrustPanel, Feeds, Multiview, CatchUpDialog
+│       ├── components/          TopBar, Broadcast, Pitch, GraphicLayer, ViewerPanel, InsightTabs, ProofPanel, Multiview, CatchUpDialog
 │       ├── hooks/               useMatchStream (SSE, frame-batched) · useGraphicsQueue
 │       └── lib/                 typed API client + shared types
 └── Dockerfile                   single container: React build served by FastAPI

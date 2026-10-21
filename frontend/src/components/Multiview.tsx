@@ -57,7 +57,7 @@ export default function Multiview({ config, playback }: { config: AppConfig; pla
   return (
     <section className="card multiview" aria-label="Multiview">
       <h2>
-        Same match, three viewers <small>every line verified against the same ledger</small>
+        Same moment, three viewers <small>each line verified against the same match ledger</small>
       </h2>
       <div className="mv-grid">
         {columns.map((c) => (

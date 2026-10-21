@@ -1,4 +1,3 @@
-import type { StreamStatus } from "../hooks/useMatchStream";
 import type { MatchMeta, Overlay, Tick, TickEvent } from "../lib/types";
 import { GraphicLayer } from "./GraphicLayer";
 import { Pitch } from "./Pitch";
@@ -8,92 +7,77 @@ interface Props {
   tick: Tick | null;
   trail: TickEvent[];
   onAir: Overlay | null;
-  status: StreamStatus;
+  onSelect: (o: Overlay) => void;
 }
 
-const PILL: Record<StreamStatus, string> = {
-  idle: "READY",
-  connecting: "CONNECTING",
-  live: "LIVE",
-  ended: "FULL-TIME",
-  error: "OFFLINE",
-};
-
-export function Broadcast({ meta, tick, trail, onAir, status }: Props) {
+export function Broadcast({ meta, tick, trail, onAir, onSelect }: Props) {
   const { home, away } = meta;
   const m = tick?.momentum ?? 0;
   const poss = tick?.possession_10m ?? 50;
+  const chaos = tick?.chaos ?? 0;
 
   return (
-    <section className="card broadcast" aria-label="Broadcast">
-      <div className="screen">
-        <div className="scorebug">
-          <span className="team">
-            <i style={{ background: home.color }} />
-            <b>{home.code}</b>
-          </span>
-          <span className="score">
-            <b>{tick?.score.home ?? 0}</b>
-            <em>-</em>
-            <b>{tick?.score.away ?? 0}</b>
-          </span>
-          <span className="team">
-            <b>{away.code}</b>
-            <i style={{ background: away.color }} />
-          </span>
-          <span className="clock">{tick?.clock ?? "00:00"}</span>
+    <section className="stage" aria-label="Broadcast">
+      <div className="screen-wrap">
+        <div className="screen">
+          <div className="scorebug">
+            <span className="sb-team">
+              <i style={{ background: home.color }} />
+              {home.code}
+            </span>
+            <span className="sb-score">
+              {tick?.score.home ?? 0}
+              <em>–</em>
+              {tick?.score.away ?? 0}
+            </span>
+            <span className="sb-team">
+              {away.code}
+              <i style={{ background: away.color }} />
+            </span>
+            <span className="sb-clock">{tick?.clock ?? "00:00"}</span>
+          </div>
+          <Pitch ball={tick?.ball ?? null} trail={trail} />
         </div>
-        <div className={`live-pill ${status}`}>{PILL[status]}</div>
-        <Pitch ball={tick?.ball ?? null} trail={trail} />
-        <GraphicLayer overlay={onAir} />
+        <GraphicLayer overlay={onAir} onSelect={onSelect} />
       </div>
 
-      <div className="meters">
-        <div className="meter wide">
-          <label>Momentum</label>
-          <div className="momentum">
+      <div className="stats">
+        <div className="stat wide">
+          <div className="stat-head">
+            <span>Momentum</span>
+            <span className="stat-val">{m === 0 ? "Even" : m > 0 ? home.short : away.short}</span>
+          </div>
+          <div className="track momentum">
             <div className="mid" />
-            <div
-              className="bar"
-              style={{
-                left: m >= 0 ? `${50 - m * 50}%` : "50%",
-                width: `${Math.abs(m) * 50}%`,
-                background: m >= 0 ? home.color : away.color,
-              }}
-            />
+            <div className="fill" style={{
+              left: m >= 0 ? `${50 - m * 50}%` : "50%",
+              width: `${Math.abs(m) * 50}%`,
+              background: m >= 0 ? home.color : away.color,
+            }} />
           </div>
-          <div className="legend">
-            <span>{home.short}</span>
-            <span>{away.short}</span>
-          </div>
+          <div className="legend"><span>{home.short}</span><span>{away.short}</span></div>
         </div>
-        <div className="meter">
-          <label>Possession · last 10'</label>
-          <div className="split" style={{ background: away.color }}>
-            <div style={{ width: `${poss}%`, background: home.color }} />
+        <div className="stat">
+          <div className="stat-head"><span>Possession · 10'</span></div>
+          <div className="track" style={{ background: away.color }}>
+            <div className="fill-static" style={{ width: `${poss}%`, background: home.color }} />
           </div>
-          <div className="legend">
-            <span>{Math.round(poss)}%</span>
-            <span>{Math.round(100 - poss)}%</span>
-          </div>
+          <div className="legend"><span>{Math.round(poss)}%</span><span>{Math.round(100 - poss)}%</span></div>
         </div>
-        <div className="meter">
-          <label>Control ↔ Chaos</label>
-          <div className="chaos">
-            <div style={{ width: `${tick?.chaos ?? 0}%` }} />
+        <div className="stat">
+          <div className="stat-head">
+            <span>Control ↔ Chaos</span>
+            <span className="stat-val">{Math.round(chaos)}</span>
           </div>
-          <div className="legend">
-            <span>control</span>
-            <span>{Math.round(tick?.chaos ?? 0)}</span>
-            <span>chaos</span>
-          </div>
+          <div className="track"><div className="fill-static chaos" style={{ width: `${chaos}%` }} /></div>
+          <div className="legend"><span>control</span><span>chaos</span></div>
         </div>
-        <div className="meter">
-          <label>Shots · xG</label>
-          <div className="statline">
-            {tick?.shots.home ?? 0} · {(tick?.xg.home ?? 0).toFixed(2)}
-            <span className="sep">|</span>
-            {tick?.shots.away ?? 0} · {(tick?.xg.away ?? 0).toFixed(2)}
+        <div className="stat">
+          <div className="stat-head"><span>Shots · xG</span></div>
+          <div className="duel">
+            <b>{tick?.shots.home ?? 0}</b><small>{(tick?.xg.home ?? 0).toFixed(2)}</small>
+            <span className="sep" />
+            <b>{tick?.shots.away ?? 0}</b><small>{(tick?.xg.away ?? 0).toFixed(2)}</small>
           </div>
         </div>
       </div>
