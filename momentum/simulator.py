@@ -110,11 +110,13 @@ class MatchSimulator:
             result = self._possession(side, ball)
             if result is None:
                 if self.period == 1:
+                    self.t = HALF
                     self._emit("half_time", None)
-                    self.period, self.t = 2, HALF
+                    self.period = 2
                     self._emit("kickoff", AWAY)
                     side, ball = AWAY, (LENGTH / 2, WIDTH / 2)
                     continue
+                self.t = FULL
                 self._emit("full_time", None)
                 break
             side, ball = result

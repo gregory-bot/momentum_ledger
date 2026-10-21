@@ -1,0 +1,9 @@
+[project]
+name = "momentum-ledger"
+version = "0.1.0"
+description = "Verified, personalized football match intelligence from synthetic events"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
