@@ -13,11 +13,24 @@ import type { AppConfig, CatchUp, Playback, Viewer } from "./lib/types";
 // Multiview opens three extra streams; load its code only when someone asks for it.
 const Multiview = lazy(() => import("./components/Multiview"));
 
+// Deep links preset the viewer, e.g. /?persona=analyst&club=away&lang=sw&start=60&autoplay=1
+const url = new URLSearchParams(window.location.search);
+const initialViewer: Viewer = {
+  persona: url.get("persona") === "analyst" ? "analyst" : "casual",
+  club: url.get("club") === "home" || url.get("club") === "away" ? (url.get("club") as Viewer["club"]) : "",
+  player: url.get("player") ?? "",
+  lang: url.get("lang") ?? "en",
+};
+const initialPlayback: Playback = {
+  speed: Number(url.get("speed")) || 30,
+  start: Math.min(89, Math.max(0, Number(url.get("start")) || 0)),
+};
+
 export default function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [viewer, setViewer] = useState<Viewer>({ persona: "casual", club: "", player: "", lang: "en" });
-  const [playback, setPlayback] = useState<Playback>({ speed: 30, start: 0 });
+  const [viewer, setViewer] = useState<Viewer>(initialViewer);
+  const [playback, setPlayback] = useState<Playback>(initialPlayback);
   const [multiview, setMultiview] = useState<Playback | null>(null);
   const [catchUp, setCatchUp] = useState<{ data: CatchUp | null; error: string | null } | null>(null);
   const [activeSpeed, setActiveSpeed] = useState(playback.speed);
@@ -38,6 +51,14 @@ export default function App() {
     setActiveSpeed(playback.speed);
     stream.start(api.streamUrl(viewer, playback));
   }, [playback, stream, viewer]);
+
+  const autoplayed = useRef(false);
+  useEffect(() => {
+    if (config && url.get("autoplay") === "1" && !autoplayed.current) {
+      autoplayed.current = true;
+      watch();
+    }
+  }, [config, watch]);
 
   const openCatchUp = useCallback(async () => {
     const live = stream.status === "live" && stream.tick;
