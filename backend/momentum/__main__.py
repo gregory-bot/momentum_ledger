@@ -4,7 +4,7 @@
     python -m momentum narrate --persona analyst --lang es   print verified overlays for a viewer
     python -m momentum trust                                 print every blocked draft and why
     python -m momentum publish --speed 30                    stream events into Azure Event Hubs
-    python -m momentum serve                                 run the web app on :8000
+    python -m momentum serve                                 run the API on :8010
 """
 
 from __future__ import annotations
@@ -108,7 +108,7 @@ def main() -> None:
 
     sv = sub.add_parser("serve")
     sv.add_argument("--host", default="0.0.0.0")
-    sv.add_argument("--port", type=int, default=8000)
+    sv.add_argument("--port", type=int, default=8010)
     sv.add_argument("--reload", action="store_true")
     sv.set_defaults(fn=cmd_serve)
 

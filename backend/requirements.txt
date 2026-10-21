@@ -1,5 +1,6 @@
 fastapi>=0.110
-uvicorn>=0.29
+uvicorn[standard]>=0.29
+orjson>=3.10
 openai>=1.40
 # Azure integrations (optional for the local demo)
 azure-identity>=1.17
