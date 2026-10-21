@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Momentum Ledger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo">ML</div>
+    <div>
+      <h1>Momentum Ledger</h1>
+      <p>Verified, personalized match intelligence · synthetic data</p>
+    </div>
+  </div>
+  <div id="services" class="chips"></div>
+</header>
+
+<main class="layout">
+  <section class="broadcast card">
+    <div class="screen">
+      <div class="scorebug">
+        <span class="team home"><i id="homeSwatch"></i><b id="homeCode">HOM</b></span>
+        <span class="score"><b id="scoreHome">0</b><em>-</em><b id="scoreAway">0</b></span>
+        <span class="team away"><b id="awayCode">AWY</b><i id="awaySwatch"></i></span>
+        <span class="clock" id="clock">00:00</span>
+      </div>
+      <div class="live-pill" id="livePill">READY</div>
+
+      <svg id="pitch" viewBox="-2 -2 109 72" preserveAspectRatio="xMidYMid meet" aria-label="Pitch">
+        <rect x="0" y="0" width="105" height="68" class="grass"/>
+        <g class="lines">
+          <rect x="0" y="0" width="105" height="68"/>
+          <line x1="52.5" y1="0" x2="52.5" y2="68"/>
+          <circle cx="52.5" cy="34" r="9.15"/>
+          <rect x="0" y="13.84" width="16.5" height="40.32"/>
+          <rect x="88.5" y="13.84" width="16.5" height="40.32"/>
+          <rect x="0" y="24.84" width="5.5" height="18.32"/>
+          <rect x="99.5" y="24.84" width="5.5" height="18.32"/>
+          <rect x="-1.5" y="30.34" width="1.5" height="7.32"/>
+          <rect x="105" y="30.34" width="1.5" height="7.32"/>
+        </g>
+        <g id="trails"></g>
+        <circle id="ball" cx="52.5" cy="34" r="1.1"/>
+      </svg>
+
+      <div id="flash" class="flash hidden"></div>
+      <div id="panel" class="tactical hidden"></div>
+      <div id="lowerThird" class="lower-third hidden">
+        <div class="lt-tag" id="ltTag">INSIGHT</div>
+        <div class="lt-text" id="ltText"></div>
+        <div class="lt-proof" id="ltProof"></div>
+      </div>
+    </div>
+
+    <div class="meters">
+      <div class="meter">
+        <label>Momentum</label>
+        <div class="momentum"><div class="mid"></div><div id="momBar" class="bar"></div></div>
+        <div class="meter-legend"><span id="momHome">Home</span><span id="momAway">Away</span></div>
+      </div>
+      <div class="meter small">
+        <label>Possession · last 10'</label>
+        <div class="split"><div id="possBar"></div></div>
+        <div class="meter-legend"><span id="possHome">50%</span><span id="possAway">50%</span></div>
+      </div>
+      <div class="meter small">
+        <label>Control ↔ Chaos</label>
+        <div class="chaos"><div id="chaosBar"></div></div>
+        <div class="meter-legend"><span>control</span><span id="chaosVal">0</span><span>chaos</span></div>
+      </div>
+      <div class="meter small stats">
+        <label>Shots · xG</label>
+        <div id="statLine" class="statline">0 · 0.00 &nbsp;|&nbsp; 0 · 0.00</div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="card controls">
+      <h2>Viewer</h2>
+      <div class="field">
+        <label>Mode</label>
+        <div class="seg" data-name="persona">
+          <button data-v="casual" class="on">Casual</button>
+          <button data-v="analyst">Analyst</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>I support</label>
+        <div class="seg" data-name="club">
+          <button data-v="" class="on">Neutral</button>
+          <button data-v="home" id="clubHome">Home</button>
+          <button data-v="away" id="clubAway">Away</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="player">Player Lens</label>
+          <select id="player"><option value="">Off</option></select>
+        </div>
+        <div class="field">
+          <label for="lang">Language</label>
+          <select id="lang"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="speed">Speed</label>
+          <select id="speed">
+            <option value="10">10×</option>
+            <option value="30" selected>30×</option>
+            <option value="60">60×</option>
+            <option value="120">120×</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="start">Join at minute</label>
+          <input id="start" type="number" min="0" max="89" value="0">
+        </div>
+      </div>
+      <div class="actions">
+        <button id="go" class="primary">▶ Watch live</button>
+        <button id="catch">Catch me up</button>
+        <button id="multi">Multiview</button>
+      </div>
+    </section>
+
+    <section class="card trust">
+      <div class="trust-head">
+        <h2>Trust panel</h2>
+        <div class="counts">
+          <span class="ok" id="cOk">0 verified</span>
+          <span class="bad" id="cBad">0 blocked</span>
+        </div>
+      </div>
+      <p class="hint">Every line is re-derived from the raw event ledger before air. Blocked drafts never reach the screen.</p>
+      <ul id="trustList"></ul>
+    </section>
+  </aside>
+
+  <section class="card feed">
+    <h2>On-air feed</h2>
+    <ul id="feedList"></ul>
+  </section>
+
+  <section class="card json">
+    <h2>Overlay JSON <small>timecoded · machine-readable</small></h2>
+    <pre id="jsonOut">Waiting for the first verified overlay…</pre>
+  </section>
+
+  <section class="card multiview hidden" id="multiview">
+    <h2>Same match, three viewers <small>every line verified against the same ledger</small></h2>
+    <div class="mv-grid" id="mvGrid"></div>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <button class="close" id="modalClose" aria-label="Close">×</button>
+    <h3 id="modalTitle">Catch me up</h3>
+    <ol id="modalList"></ol>
+    <p class="hint" id="modalHint"></p>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
