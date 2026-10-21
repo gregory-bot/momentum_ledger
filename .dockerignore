@@ -5,6 +5,7 @@
 frontend/dist
 backend/tests
 backend/data
-functions
-infra
+backend/functions
+backend/infra
+backend/scripts
 **/.env

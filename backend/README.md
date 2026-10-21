@@ -13,6 +13,17 @@ pytest                              # 39 tests
 
 Configuration is optional. Copy `.env.example` to `.env` to enable Azure services. With nothing set, everything runs offline.
 
+## Folders
+
+| Folder | What it is |
+|---|---|
+| `momentum/` | The engine and API (Python package). |
+| `tests/` | pytest suite. |
+| `data/` | Sample synthetic match. |
+| `functions/` | **Azure Functions** app: the serverless production worker. On each Event Hubs batch it stores events in Cosmos DB, replays the ledger, and writes verified overlays. Reuses `momentum/`, which the deploy script copies in. |
+| `infra/` | **Bicep** (infrastructure as code): creates Event Hubs, Cosmos DB, Azure OpenAI, Translator, Functions, Container Apps and App Insights in one command. |
+| `scripts/deploy.sh` | Provisions `infra/`, publishes `functions/`, and deploys the web container. Run it from anywhere. |
+
 ## Module map
 
 | Module | Responsibility |

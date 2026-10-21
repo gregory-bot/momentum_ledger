@@ -5,16 +5,17 @@ set -euo pipefail
 
 RG=${RG:-rg-momentum}
 LOCATION=${LOCATION:-swedencentral}
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)   # repository root
+BACKEND="$ROOT/backend"
 
 az group create -n "$RG" -l "$LOCATION" -o none
 echo "Deploying infrastructure (Event Hubs, Cosmos DB, Azure OpenAI, Translator, Functions, Container Apps)..."
-az deployment group create -g "$RG" -f "$ROOT/infra/main.bicep" -o none
+az deployment group create -g "$RG" -f "$BACKEND/infra/main.bicep" -o none
 FUNC=$(az deployment group show -g "$RG" -n main --query properties.outputs.functionApp.value -o tsv)
 
 echo "Publishing Function App $FUNC..."
-rm -rf "$ROOT/functions/momentum" && cp -R "$ROOT/backend/momentum" "$ROOT/functions/momentum"
-(cd "$ROOT/functions" && func azure functionapp publish "$FUNC" --python)
+rm -rf "$BACKEND/functions/momentum" && cp -R "$BACKEND/momentum" "$BACKEND/functions/momentum"
+(cd "$BACKEND/functions" && func azure functionapp publish "$FUNC" --python)
 
 echo "Building and deploying the web app to Container Apps..."
 WEB=$(az containerapp list -g "$RG" --query "[0].name" -o tsv)
@@ -26,5 +27,5 @@ cat <<EOF
 Stream a match into Event Hubs (the Function picks it up and writes verified overlays to Cosmos):
   export EVENTHUB_CONNECTION="\$(az eventhubs eventhub authorization-rule keys list -g $RG \\
       --namespace-name <namespace> --eventhub-name match-events -n app --query primaryConnectionString -o tsv)"
-  python -m momentum publish --speed 30
+  cd backend && python -m momentum publish --speed 30
 EOF

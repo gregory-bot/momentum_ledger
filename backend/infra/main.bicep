@@ -3,7 +3,7 @@
 //   Azure OpenAI + AI Translator (narrate/translate) · Container Apps (web overlay + API) · App Insights
 //
 //   az group create -n rg-momentum -l swedencentral
-//   az deployment group create -g rg-momentum -f infra/main.bicep
+//   az deployment group create -g rg-momentum -f backend/infra/main.bicep
 
 @description('Short prefix for resource names (lowercase letters/numbers).')
 param prefix string = 'momentum'
@@ -11,7 +11,7 @@ param location string = resourceGroup().location
 @description('Model deployed in Azure OpenAI for narration and judging.')
 param openAiModel string = 'gpt-4o-mini'
 param openAiModelVersion string = '2024-07-18'
-@description('Container image for the web app (push with scripts/deploy.sh).')
+@description('Container image for the web app (push with backend/scripts/deploy.sh).')
 param webImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
 var suffix = uniqueString(resourceGroup().id)
