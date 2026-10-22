@@ -32,7 +32,7 @@ src/
 ├── components/
 │   ├── Header.tsx          brand, tabs, scoreboard
 │   ├── Transport.tsx       play/pause, speed, scrubber with moment markers, clock
-│   ├── Pitch.tsx           SVG pitch: live trails or 10' territory
+│   ├── Pitch3D.tsx         3D broadcast monitor: tactical / follow-ball / player cameras, 10' territory
 │   ├── OnAir.tsx           goal flash, tactical panel, lower third
 │   ├── Rundown.tsx         aired moments, replay from any
 │   ├── ViewerModes.tsx     persona, club, language, player lens
@@ -44,8 +44,19 @@ src/
 └── lib/
     ├── api.ts · types.ts   typed API client
     ├── derive.ts           state at any t: binary search + single-pass stats
+    ├── tracking.ts         positional model: all 22 players + ball (with flight) at any t
+    ├── camera.ts           pinhole camera, near-plane clipping, SVG projection
     └── labels.ts           plain-language labels
 ```
+
+## The broadcast monitor
+
+The event stream records on-ball actions only, so `tracking.ts` places the other 21 players with a
+formation model: each holds a 4-3-3 slot that slides with the ball, compresses when defending, the
+nearest defender closes down, receivers run onto passes, and substitutes take the slot they replace.
+The ball flies between events (lofted for long passes). `Pitch3D` projects everything through a small
+perspective camera into SVG (no 3D library) with three presets, glides between them, and lets you click
+any player to follow them. Deep link a camera with `?cam=tactical|ball|player|territory`.
 
 ## Keyboard
 

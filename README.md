@@ -66,7 +66,7 @@ The web app (`frontend/`) is a broadcast control room:
 
 | Tab | What's in it |
 |---|---|
-| **Control room** | Rundown of aired moments (replay from any of them), live pitch with action trails or a **Territory** view (who controlled which zones in the last 10'), on-air graphics, live ticker, momentum / possession / chaos / xG meters, viewer modes, and an **Insight desk** showing the facts and checks behind each line. A transport bar plays, pauses, scrubs and jumps to goals at 10–120×. |
+| **Control room** | Rundown of aired moments (replay from any of them), a **3D broadcast monitor** with all 22 players (tactical, follow-ball and click-to-follow player cameras) plus a **Territory** view (who controlled which zones in the last 10'), on-air graphics, live ticker, momentum / possession / chaos / xG meters, viewer modes, and an **Insight desk** showing the facts and checks behind each line. A transport bar plays, pauses, scrubs and jumps to goals at 10–120×. |
 | **Match pack** | Average-position lineups, live team stats, shot map (area = xG), **xG race** and **momentum river** charts, and a sortable player table, all recomputed for the current minute. |
 | **Trust lab** | The verification pipeline with live counts, the full trust log (every blocked draft and why), and the **Fact-check desk**: paste any sentence, pick a minute, and see every number traced to a fact, or flagged. |
 | **Developers** | Every REST endpoint runnable in an in-page console, the MCP config to copy, and the tool list. |

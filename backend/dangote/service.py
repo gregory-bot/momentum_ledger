@@ -113,6 +113,10 @@ def compact_event(e: Event, meta: MatchMeta) -> dict[str, Any]:
            "player_id": e.player_id, "outcome": e.outcome, "x": e.x, "y": e.y, "end_x": e.end_x, "end_y": e.end_y}
     if "xg" in e.extras:
         out["xg"] = e.extras["xg"]
+    if e.receiver_id:
+        out["receiver_id"] = e.receiver_id
+    if "off_id" in e.extras:
+        out["off_id"] = e.extras["off_id"]
     return {k: v for k, v in out.items() if v is not None}
 
 
