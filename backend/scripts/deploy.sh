@@ -3,7 +3,7 @@
 # Requires: az CLI (logged in), Azure Functions Core Tools v4.
 set -euo pipefail
 
-RG=${RG:-rg-momentum}
+RG=${RG:-rg-dangote}
 LOCATION=${LOCATION:-swedencentral}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)   # repository root
 BACKEND="$ROOT/backend"
@@ -14,7 +14,7 @@ az deployment group create -g "$RG" -f "$BACKEND/infra/main.bicep" -o none
 FUNC=$(az deployment group show -g "$RG" -n main --query properties.outputs.functionApp.value -o tsv)
 
 echo "Publishing Function App $FUNC..."
-rm -rf "$BACKEND/functions/momentum" && cp -R "$BACKEND/momentum" "$BACKEND/functions/momentum"
+rm -rf "$BACKEND/functions/dangote" && cp -R "$BACKEND/dangote" "$BACKEND/functions/dangote"
 (cd "$BACKEND/functions" && func azure functionapp publish "$FUNC" --python)
 
 echo "Building and deploying the web app to Container Apps..."
@@ -27,5 +27,5 @@ cat <<EOF
 Stream a match into Event Hubs (the Function picks it up and writes verified overlays to Cosmos):
   export EVENTHUB_CONNECTION="\$(az eventhubs eventhub authorization-rule keys list -g $RG \\
       --namespace-name <namespace> --eventhub-name match-events -n app --query primaryConnectionString -o tsv)"
-  cd backend && python -m momentum publish --speed 30
+  cd backend && python -m dangote publish --speed 30
 EOF

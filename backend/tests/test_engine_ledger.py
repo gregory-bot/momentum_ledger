@@ -1,7 +1,7 @@
 import pytest
 
-from momentum.ledger import Ledger, QueryError
-from momentum.pitch import xg, xt
+from dangote.ledger import Ledger, QueryError
+from dangote.pitch import xg, xt
 
 
 def test_value_models_are_sane():

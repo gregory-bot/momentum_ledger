@@ -6,9 +6,9 @@ import pytest
 for key in ("AZURE_OPENAI_ENDPOINT", "AZURE_TRANSLATOR_KEY", "EVENTHUB_CONNECTION", "COSMOS_ENDPOINT"):
     os.environ[key] = ""
 
-from momentum.config import load_settings  # noqa: E402
-from momentum.pipeline import MatchPipeline  # noqa: E402
-from momentum.simulator import generate_match  # noqa: E402
+from dangote.config import load_settings  # noqa: E402
+from dangote.pipeline import MatchPipeline  # noqa: E402
+from dangote.simulator import generate_match  # noqa: E402
 
 
 @pytest.fixture(scope="session")

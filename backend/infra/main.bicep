@@ -1,12 +1,12 @@
-// Momentum Ledger: Azure footprint.
+// Dangote: Azure footprint.
 //   Event Hubs (ingest) -> Functions Flex Consumption (interpret/explain/verify) -> Cosmos DB (ledger + overlays)
 //   Azure OpenAI + AI Translator (narrate/translate) · Container Apps (web overlay + API) · App Insights
 //
 //   az group create -n rg-momentum -l swedencentral
-//   az deployment group create -g rg-momentum -f backend/infra/main.bicep
+//   az deployment group create -g rg-dangote -f backend/infra/main.bicep
 
 @description('Short prefix for resource names (lowercase letters/numbers).')
-param prefix string = 'momentum'
+param prefix string = 'dangote'
 param location string = resourceGroup().location
 @description('Model deployed in Azure OpenAI for narration and judging.')
 param openAiModel string = 'gpt-4o-mini'

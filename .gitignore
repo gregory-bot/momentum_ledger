@@ -14,5 +14,5 @@ frontend/dist/
 backend/functions/local.settings.json
 
 # Build artefacts
-backend/functions/momentum/
+backend/functions/dangote/
 .DS_Store

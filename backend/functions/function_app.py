@@ -16,12 +16,12 @@ import logging
 
 import azure.functions as func
 
-from momentum.azure_io import CosmosStore
-from momentum.broadcast import Director, LiveSession
-from momentum.config import load_settings
-from momentum.llm import AzureLLM
-from momentum.models import Event, Profile
-from momentum.simulator import default_meta
+from dangote.azure_io import CosmosStore
+from dangote.broadcast import Director, LiveSession
+from dangote.config import load_settings
+from dangote.llm import AzureLLM
+from dangote.models import Event, Profile
+from dangote.scenarios import build_meta, get_scenario, parse_match_id
 
 app = func.FunctionApp()
 
@@ -48,7 +48,8 @@ def ingest(batch: list[func.EventHubEvent]) -> None:
     for match_id, new in by_match.items():
         new_ids = {e.id for e in new}
         ledger = store.load_events(match_id)
-        meta = default_meta(int(match_id.split("-")[-1]))
+        scenario, seed = parse_match_id(match_id)
+        meta = build_meta(get_scenario(scenario), seed)
         produced = 0
         for profile in PROFILES:
             session = LiveSession(meta, settings, profile, llm)

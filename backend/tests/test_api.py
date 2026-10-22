@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from momentum.server import app
+from dangote.server import app
 
 client = TestClient(app)
 
