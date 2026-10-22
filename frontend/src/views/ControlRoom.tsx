@@ -1,12 +1,16 @@
 import { useMemo, useState } from "react";
 import { InsightDesk } from "../components/InsightDesk";
 import { OnAir } from "../components/OnAir";
-import { Pitch, type PitchMode } from "../components/Pitch";
+import { Pitch3D, type CamMode } from "../components/Pitch3D";
 import { Rundown } from "../components/Rundown";
 import { ViewerModes } from "../components/ViewerModes";
 import type { Playback } from "../hooks/usePlayback";
 import { airedAt, clockOf, onAirAt, pitchAt, snapshotAt } from "../lib/derive";
 import type { Overlay, Pack, PackEvent, Viewer } from "../lib/types";
+
+// ?cam=tactical|ball|player|territory deep-links a camera (read once, before the URL is rewritten).
+const CAM_PARAM = new URLSearchParams(window.location.search).get("cam");
+const INITIAL_CAM: CamMode = CAM_PARAM === "ball" || CAM_PARAM === "player" || CAM_PARAM === "territory" ? CAM_PARAM : "tactical";
 
 const VERB: Record<string, string> = {
   pass: "passes", carry: "carries", shot: "shoots", tackle: "tackles", interception: "intercepts",
@@ -39,20 +43,13 @@ interface Props {
 
 export function ControlRoom(p: Props) {
   const { pack, pb } = p;
-  const [mode, setMode] = useState<PitchMode>("live");
+  const [mode, setMode] = useState<CamMode>(INITIAL_CAM);
+  const [followId, setFollowId] = useState<string | null>(p.viewer.player || null);
   const snap = snapshotAt(pack, pb.t);
-  const { ball, trail, last, index } = pitchAt(pack, pb.t);
+  const { last } = pitchAt(pack, pb.t);
   const aired = useMemo(() => airedAt(pack.overlays, pb.t), [pack.overlays, pb.t]);
   const onAir = onAirAt(aired, pb.t, pb.speed);
   const colors = { home: pack.meta.home.color, away: pack.meta.away.color };
-  const territory = useMemo(() => {
-    if (mode !== "territory") return [];
-    const out: PackEvent[] = [];
-    for (let i = index; i >= 0 && pack.events[i].t >= pb.t - 600; i--) out.push(pack.events[i]);
-    return out;
-    // recompute at most every few match seconds
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, pack.events, Math.floor(pb.t / 5)]);
   const m = snap.momentum;
 
   return (
@@ -61,15 +58,25 @@ export function ControlRoom(p: Props) {
 
       <section className="stage" aria-label="Broadcast">
         <div className="stage-bar">
-          <div className="chips" role="radiogroup" aria-label="Pitch view">
-            <button type="button" className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>live</button>
-            <button type="button" className={mode === "territory" ? "on" : ""} onClick={() => setMode("territory")}>territory 10'</button>
+          <div className="chips" role="radiogroup" aria-label="Camera">
+            {([["tactical", "tactical"], ["ball", "follow ball"], ["player", "player"], ["territory", "territory 10'"]] as [CamMode, string][]).map(([k, label]) => (
+              <button key={k} type="button" role="radio" aria-checked={mode === k} className={mode === k ? "on" : ""}
+                disabled={k === "player" && !followId} title={k === "player" && !followId ? "Click a player on the pitch to follow them" : undefined}
+                onClick={() => setMode(k)}>{label}</button>
+            ))}
           </div>
           <span className={`rec ${pb.playing ? "on" : ""}`}>{clockOf(pb.t)}</span>
         </div>
         <div className="screen-wrap">
           <div className="screen">
-            <Pitch mode={mode} ball={ball} trail={trail} territory={territory} colors={colors} />
+            <Pitch3D pack={pack} t={pb.t} mode={mode} followId={followId}
+              onFollow={(id) => { setFollowId(id); setMode("player"); }} />
+            {mode === "ball" && <span className="cam-hint">click a player to follow them</span>}
+            {mode === "player" && followId && (
+              <button type="button" className="cam-hint" onClick={() => { setFollowId(null); setMode("tactical"); }}>
+                following #{[...pack.meta.home.players, ...pack.meta.home.bench, ...pack.meta.away.players, ...pack.meta.away.bench].find((x) => x.id === followId)?.number} · release ×
+              </button>
+            )}
           </div>
           <OnAir overlay={onAir} onSelect={p.onSelect} />
         </div>

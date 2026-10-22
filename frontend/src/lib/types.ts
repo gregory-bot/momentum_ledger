@@ -67,6 +67,8 @@ export interface PackEvent {
   end_x?: number;
   end_y?: number;
   xg?: number;
+  receiver_id?: string;
+  off_id?: string;
 }
 
 export interface Snapshot {
