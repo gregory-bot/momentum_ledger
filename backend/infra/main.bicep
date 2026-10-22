@@ -1,4 +1,4 @@
-// Dangote: Azure footprint.
+// dangote: Azure footprint.
 //   Event Hubs (ingest) -> Functions Flex Consumption (interpret/explain/verify) -> Cosmos DB (ledger + overlays)
 //   Azure OpenAI + AI Translator (narrate/translate) · Container Apps (web overlay + API) · App Insights
 //

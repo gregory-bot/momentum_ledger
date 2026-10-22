@@ -1,4 +1,4 @@
-// Shapes returned by the Dangote API (backend/dangote/server.py).
+// Shapes returned by the dangote API (backend/dangote/server.py).
 
 export type Side = "home" | "away";
 export type Persona = "casual" | "analyst";

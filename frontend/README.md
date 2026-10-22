@@ -1,6 +1,6 @@
-# Dangote · Frontend
+# dangote · Frontend
 
-The Dangote control room: React 19 + TypeScript + Vite, Consolas throughout. See the [root README](../README.md) for the full picture.
+The dangote control room: React 19 + TypeScript + Vite, Consolas throughout. See the [root README](../README.md) for the full picture.
 
 ## Run
 

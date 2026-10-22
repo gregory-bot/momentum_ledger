@@ -83,7 +83,7 @@ export default function App() {
   if (bootError) {
     return (
       <div className="boot">
-        <div className="brand big"><span className="wordmark">DANGOTE</span></div>
+        <div className="brand big"><span className="wordmark">dangote</span></div>
         <p className="bad">can't reach the API ({bootError})</p>
         <p className="dim">start it with <code>python -m dangote serve</code> in <code>backend/</code></p>
       </div>

@@ -1,4 +1,4 @@
-/* DANGOTE: verified match studio. One typeface everywhere: Consolas. */
+/* dangote: verified match studio. One typeface everywhere: Consolas. */
 :root {
   --mono: Consolas, Inconsolata, "Cascadia Mono", "SF Mono", Menlo, monospace;
   --bg: #05080f;
@@ -58,7 +58,7 @@ code, pre { font-family: var(--mono); }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .logo { width: 28px; height: 28px; display: grid; place-items: center; flex: none; border-radius: 6px; color: var(--bg);
   background: linear-gradient(135deg, var(--accent-2), var(--accent)); box-shadow: 0 0 18px rgba(79, 140, 255, .45); }
-.wordmark { font-weight: 700; letter-spacing: .32em; font-size: 15px; }
+.wordmark { font-weight: 700; letter-spacing: .32em; font-size: 15px; text-transform: lowercase; }
 .wordmark::after { content: "_"; color: var(--accent); animation: blink 1.1s steps(2, start) infinite; }
 .tagline { color: var(--faint); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; border-left: 1px solid var(--line-2); padding-left: 10px; }
 .brand.big .logo { width: 40px; height: 40px; }

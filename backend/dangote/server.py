@@ -1,4 +1,4 @@
-"""Dangote HTTP API + MCP endpoint (runs locally or on Azure Container Apps).
+"""dangote HTTP API + MCP endpoint (runs locally or on Azure Container Apps).
 
     GET  /api                          service index
     GET  /api/scenarios                the storylines
@@ -77,7 +77,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(title="Dangote API", version=__version__, default_response_class=FastJSON, lifespan=lifespan,
+app = FastAPI(title="dangote API", version=__version__, default_response_class=FastJSON, lifespan=lifespan,
               description="Verified, personalized football match intelligence over synthetic events.")
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(CORSMiddleware, allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),

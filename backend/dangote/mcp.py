@@ -145,7 +145,7 @@ def handle(message: dict[str, Any]) -> dict[str, Any] | None:
         return None
     if method == "initialize":
         result: Any = {"protocolVersion": PROTOCOL_VERSION, "capabilities": {"tools": {"listChanged": False}},
-                       "serverInfo": {"name": "dangote", "title": "Dangote match studio", "version": __version__},
+                       "serverInfo": {"name": "dangote", "title": "dangote match studio", "version": __version__},
                        "instructions": "Synthetic football match intelligence. Start with list_scenarios, then "
                                        "match_summary. Use fact_check before repeating any number."}
     elif method == "ping":

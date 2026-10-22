@@ -35,7 +35,7 @@ export function Header({ pack, snap, t, tab, onTab, onNewMatch }: Props) {
     <header className="header">
       <div className="brand">
         <Logo />
-        <span className="wordmark">DANGOTE</span>
+        <span className="wordmark">dangote</span>
         <span className="tagline hide-md">verified match studio</span>
       </div>
 

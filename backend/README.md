@@ -1,4 +1,4 @@
-# Dangote · Backend
+# dangote · Backend
 
 The Python engine, the HTTP API and the MCP server. See the [root README](../README.md) for the full picture.
 
