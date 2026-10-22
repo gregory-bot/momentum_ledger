@@ -1,6 +1,6 @@
 <div align="center">
 
-# DANGOTE_
+# dangote_
 
 **Every number on screen, proven.**
 
@@ -123,7 +123,7 @@ flowchart LR
   subgraph CA["Azure Container Apps"]
     SVC[Service layer] --> API[REST + SSE]
     SVC --> MCP[MCP server]
-    API --> WEB[Dangote web app]
+    API --> WEB[dangote web app]
   end
   OV --> SVC
 ```
@@ -155,7 +155,7 @@ flowchart LR
 │   ├── functions/           Azure Functions (Event Hubs → verified overlays in Cosmos)
 │   ├── infra/main.bicep     every Azure resource
 │   └── scripts/deploy.sh    provision + deploy
-├── frontend/                Dangote web app: React 19 + TypeScript + Vite
+├── frontend/                dangote web app: React 19 + TypeScript + Vite
 └── Dockerfile               one container: web app served by the API
 ```
 

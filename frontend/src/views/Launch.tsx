@@ -5,7 +5,7 @@ export function Launch({ config, onStart }: { config: AppConfig; onStart: (scena
   return (
     <div className="launch">
       <div className="launch-hero">
-        <div className="brand big"><Logo /><span className="wordmark">DANGOTE</span></div>
+        <div className="brand big"><Logo /><span className="wordmark">dangote</span></div>
         <h1>Every number on screen, <em>proven.</em></h1>
         <p className="dim">
           Synthetic football events in. Explainable, verified, personalized match intelligence out:

@@ -83,7 +83,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="dangote", description="Dangote")
+    p = argparse.ArgumentParser(prog="dangote", description="dangote")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("simulate")
