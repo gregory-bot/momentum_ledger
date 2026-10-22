@@ -238,8 +238,8 @@ export default function Monitor3D(props: Props) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#070b10");
-    scene.fog = new THREE.Fog("#070b10", 120, 230);
+    scene.background = new THREE.Color("#e9e9ec");
+    scene.fog = new THREE.Fog("#e9e9ec", 130, 240);
     const camera = new THREE.PerspectiveCamera(50, 5 / 3, 0.5, 400);
     camera.position.set(0, 64, 56);
     const look = new THREE.Vector3(0, 0, -3);
@@ -252,7 +252,7 @@ export default function Monitor3D(props: Props) {
     Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 50, bottom: -50, near: 10, far: 200 });
     scene.add(sun);
 
-    const apron = new THREE.Mesh(new THREE.PlaneGeometry(150, 110), new THREE.MeshStandardMaterial({ color: "#14301f", roughness: 1 }));
+    const apron = new THREE.Mesh(new THREE.PlaneGeometry(150, 110), new THREE.MeshStandardMaterial({ color: "#1c4a30", roughness: 1 }));
     apron.rotation.x = -Math.PI / 2;
     apron.position.y = -0.02;
     apron.receiveShadow = true;
@@ -302,7 +302,7 @@ export default function Monitor3D(props: Props) {
       return m;
     };
     const holderRing = ring(0.95, 1.2, "#ffffff", 0.9);
-    const focusRing = ring(1.3, 1.6, "#ffb547", 0.95);
+    const focusRing = ring(1.3, 1.6, "#d7141f", 0.95);
     let label: THREE.Sprite | null = null;
     let labelFor: string | null = null;
 

@@ -19,23 +19,11 @@ interface Props {
   onScenario: (id: string) => void;
 }
 
-export function Logo() {
-  return (
-    <span className="logo" aria-hidden>
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square">
-        <path d="M4 18 L9 11 L13 14 L20 5" />
-        <path d="M15 5 H20 V10" />
-      </svg>
-    </span>
-  );
-}
-
 export function Header({ pack, snap, t, tab, onTab, scenarios, scenario, onScenario }: Props) {
   const period = !pack ? "" : t >= pack.duration ? "full-time" : t >= 2700 ? "2nd half" : t > 0 ? "1st half" : "pre-match";
   return (
     <header className="header">
       <div className="brand">
-        <Logo />
         <span className="wordmark">dangote</span>
         <span className="tagline hide-md">verified match studio</span>
       </div>
