@@ -176,7 +176,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173**, pick a storyline, and it goes to air.
+Open **http://localhost:5173**: it opens straight into the control room on *The Press Trap*. Press play, or switch storyline from the picker in the header.
 Single-server mode (as in production): `cd frontend && npm run build`, then the backend serves the app on :8010.
 
 CLI:

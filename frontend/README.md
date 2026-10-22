@@ -22,15 +22,14 @@ nothing; changing viewer mode only re-fetches the overlays (cached server-side).
 
 ```
 src/
-├── App.tsx                 shell: launch → studio, tabs, deep links, keyboard
+├── App.tsx                 shell: opens straight into the studio; tabs, deep links, keyboard
 ├── views/
-│   ├── Launch.tsx          storyline picker
 │   ├── ControlRoom.tsx     rundown · stage · viewer modes · insight desk
 │   ├── MatchPack.tsx       lineups, stats, shot map, xG race, momentum river, players (lazy)
 │   ├── TrustLab.tsx        pipeline, fact-check desk, trust log (lazy)
 │   └── Developers.tsx      API console, MCP config, tools (lazy)
 ├── components/
-│   ├── Header.tsx          brand, tabs, scoreboard
+│   ├── Header.tsx          brand, tabs, scoreboard, storyline picker
 │   ├── Transport.tsx       play/pause, speed, scrubber with moment markers, clock
 │   ├── Monitor3D.tsx       WebGL broadcast monitor (three.js, lazy-loaded): animated players, cameras
 │   ├── Pitch3D.tsx         SVG fallback monitor for devices without WebGL

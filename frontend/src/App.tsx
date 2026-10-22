@@ -8,7 +8,6 @@ import { api } from "./lib/api";
 import { airedAt, minuteOf, snapshotAt } from "./lib/derive";
 import type { AppConfig, Overlay, Viewer } from "./lib/types";
 import { ControlRoom } from "./views/ControlRoom";
-import { Launch } from "./views/Launch";
 
 // Secondary tabs load on demand to keep the first paint small.
 const MatchPack = lazy(() => import("./views/MatchPack").then((m) => ({ default: m.MatchPack })));
@@ -22,6 +21,7 @@ const TABS: Tab[] = ["control", "pack", "trust", "dev"];
 export default function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [bootError, setBootError] = useState<string | null>(null);
+  // Opens straight into the control room: the deep-linked storyline, else the first one.
   const [scenario, setScenario] = useState<string | null>(url.get("scenario"));
   const [tab, setTab] = useState<Tab>(TABS.includes(url.get("tab") as Tab) ? (url.get("tab") as Tab) : "control");
   const [viewer, setViewer] = useState<Viewer>({
@@ -39,7 +39,12 @@ export default function App() {
   const pb = usePlayback(pack?.duration ?? 5400, startAt, url.get("autoplay") === "1");
 
   useEffect(() => {
-    api.config().then(setConfig).catch((e: Error) => setBootError(e.message));
+    api.config()
+      .then((c) => {
+        setConfig(c);
+        setScenario((s) => s ?? c.scenarios[0]?.id ?? "press-trap");
+      })
+      .catch((e: Error) => setBootError(e.message));
   }, []);
 
   useEffect(() => {
@@ -90,14 +95,15 @@ export default function App() {
     );
   }
   if (!config) return <div className="boot"><span className="blink">booting studio…</span></div>;
-  if (!scenario) return <Launch config={config} onStart={start} />;
+  if (!scenario) return <div className="boot"><span className="blink">booting studio…</span></div>;
 
   const selected = pack?.overlays.find((o) => o.id === selectedId) ?? (pack ? airedAt(pack.overlays, pb.t)[0] : undefined);
   const snap = pack ? snapshotAt(pack, pb.t) : null;
 
   return (
     <div className="studio">
-      <Header pack={pack} snap={snap} t={pb.t} tab={tab} onTab={setTab} onNewMatch={() => { pb.pause(); setScenario(null); }} />
+      <Header pack={pack} snap={snap} t={pb.t} tab={tab} onTab={setTab} scenarios={config.scenarios} scenario={scenario}
+        onScenario={(id) => { pb.pause(); start(id); }} />
       <main className="main">
         {error && <p className="bad pad">{error}</p>}
         {!pack ? (

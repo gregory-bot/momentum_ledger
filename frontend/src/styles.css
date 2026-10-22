@@ -131,6 +131,8 @@ code, pre { font-family: var(--mono); }
 .chip-team { font-size: 12px; font-weight: 700; padding: 2px 7px; border-radius: 4px; color: #fff; letter-spacing: .06em; }
 .venue { font-size: 11px; color: var(--muted); margin-left: 6px; }
 .hdr-right { display: flex; align-items: center; gap: 8px; }
+.match-pick { width: auto; max-width: 230px; padding: 6px 8px; font-size: 12px; color: var(--muted); }
+.match-pick:hover, .match-pick:focus { color: var(--text); border-color: var(--accent); }
 .period { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-2); border: 1px solid var(--line-2); padding: 3px 8px; border-radius: 4px; }
 .main { flex: 1; padding: 14px 16px 90px; width: 100%; max-width: 1680px; margin: 0 auto; }
 .hide-md, .hide-lg { display: none; }

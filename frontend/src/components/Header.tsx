@@ -1,4 +1,4 @@
-import type { Pack, Snapshot } from "../lib/types";
+import type { Pack, Scenario, Snapshot } from "../lib/types";
 
 export type Tab = "control" | "pack" | "trust" | "dev";
 
@@ -15,7 +15,9 @@ interface Props {
   t: number;
   tab: Tab;
   onTab: (t: Tab) => void;
-  onNewMatch: () => void;
+  scenarios: Scenario[];
+  scenario: string;
+  onScenario: (id: string) => void;
 }
 
 export function Logo() {
@@ -29,7 +31,7 @@ export function Logo() {
   );
 }
 
-export function Header({ pack, snap, t, tab, onTab, onNewMatch }: Props) {
+export function Header({ pack, snap, t, tab, onTab, scenarios, scenario, onScenario }: Props) {
   const period = !pack ? "" : t >= pack.duration ? "full-time" : t >= 2700 ? "2nd half" : t > 0 ? "1st half" : "pre-match";
   return (
     <header className="header">
@@ -61,7 +63,11 @@ export function Header({ pack, snap, t, tab, onTab, onNewMatch }: Props) {
 
       <div className="hdr-right">
         {period && <span className="period">{period}</span>}
-        <button type="button" className="ghost" onClick={onNewMatch}>new match</button>
+        <select className="match-pick" value={scenario} onChange={(e) => onScenario(e.target.value)} aria-label="Storyline">
+          {scenarios.map((s) => (
+            <option key={s.id} value={s.id}>{s.name} · {s.home.code} v {s.away.code}</option>
+          ))}
+        </select>
       </div>
     </header>
   );
