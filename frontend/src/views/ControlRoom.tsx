@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { InsightDesk } from "../components/InsightDesk";
 import { OnAir } from "../components/OnAir";
 import { Pitch3D, type CamMode } from "../components/Pitch3D";
@@ -7,6 +7,16 @@ import { ViewerModes } from "../components/ViewerModes";
 import type { Playback } from "../hooks/usePlayback";
 import { airedAt, clockOf, onAirAt, pitchAt, snapshotAt } from "../lib/derive";
 import type { Overlay, Pack, PackEvent, Viewer } from "../lib/types";
+
+// WebGL monitor loads on demand; the SVG monitor covers loading and devices without WebGL.
+const Monitor3D = lazy(() => import("../components/Monitor3D"));
+const WEBGL = (() => {
+  try {
+    return !!document.createElement("canvas").getContext("webgl2");
+  } catch {
+    return false;
+  }
+})();
 
 // ?cam=tactical|ball|player|territory deep-links a camera (read once, before the URL is rewritten).
 const CAM_PARAM = new URLSearchParams(window.location.search).get("cam");
@@ -69,8 +79,15 @@ export function ControlRoom(p: Props) {
         </div>
         <div className="screen-wrap">
           <div className="screen">
-            <Pitch3D pack={pack} t={pb.t} mode={mode} followId={followId}
-              onFollow={(id) => { setFollowId(id); setMode("player"); }} />
+            {(() => {
+              const follow = (id: string) => { setFollowId(id); setMode("player"); };
+              const svg = <Pitch3D pack={pack} t={pb.t} mode={mode} followId={followId} onFollow={follow} />;
+              return WEBGL ? (
+                <Suspense fallback={svg}>
+                  <Monitor3D pack={pack} t={pb.t} speed={pb.speed} playing={pb.playing} mode={mode} followId={followId} onFollow={follow} />
+                </Suspense>
+              ) : svg;
+            })()}
             {mode === "ball" && <span className="cam-hint">click a player to follow them</span>}
             {mode === "player" && followId && (
               <button type="button" className="cam-hint" onClick={() => { setFollowId(null); setMode("tactical"); }}>
