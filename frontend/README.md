@@ -32,7 +32,8 @@ src/
 ├── components/
 │   ├── Header.tsx          brand, tabs, scoreboard
 │   ├── Transport.tsx       play/pause, speed, scrubber with moment markers, clock
-│   ├── Pitch3D.tsx         3D broadcast monitor: tactical / follow-ball / player cameras, 10' territory
+│   ├── Monitor3D.tsx       WebGL broadcast monitor (three.js, lazy-loaded): animated players, cameras
+│   ├── Pitch3D.tsx         SVG fallback monitor for devices without WebGL
 │   ├── OnAir.tsx           goal flash, tactical panel, lower third
 │   ├── Rundown.tsx         aired moments, replay from any
 │   ├── ViewerModes.tsx     persona, club, language, player lens
@@ -54,9 +55,13 @@ src/
 The event stream records on-ball actions only, so `tracking.ts` places the other 21 players with a
 formation model: each holds a 4-3-3 slot that slides with the ball, compresses when defending, the
 nearest defender closes down, receivers run onto passes, and substitutes take the slot they replace.
-The ball flies between events (lofted for long passes). `Pitch3D` projects everything through a small
-perspective camera into SVG (no 3D library) with three presets, glides between them, and lets you click
-any player to follow them. Deep link a camera with `?cam=tactical|ball|player|territory`.
+The ball flies between events (lofted for long passes).
+
+`Monitor3D` renders it with three.js: a lit, shadowed pitch, goals with nets, and a blocky footballer per
+player in club kit whose legs and arms swing with running speed and who turns to face where they run, with
+a number badge above. Tactical, follow-ball and player cameras glide between each other; click any player
+to follow them. three.js lives in its own lazy chunk, and `Pitch3D` (SVG) covers loading and devices
+without WebGL. Deep link a camera with `?cam=tactical|ball|player|territory`.
 
 ## Keyboard
 
