@@ -1,5 +1,5 @@
-from momentum.models import AWAY, HOME
-from momentum.simulator import generate_match
+from dangote.models import AWAY, HOME
+from dangote.simulator import generate_match
 
 
 def test_deterministic(match):

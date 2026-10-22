@@ -58,38 +58,18 @@ class Storyline:
         return STYLES[current[1]], STYLES[current[2]]
 
 
-def _squad(prefix: str, rows: list[tuple[int, str, str]]) -> list[Player]:
-    return [Player(f"{prefix}{n}", name, n, role) for n, name, role in rows]
-
-
 def default_meta(seed: int = 7) -> MatchMeta:
-    home = Team(HOME, "NBR", "Northbridge FC", "Northbridge", "#e4572e", _squad("N", [
-        (1, "Tom Hale", "GK"), (2, "Kai Brennan", "DEF"), (4, "Kofi Mensah", "DEF"), (5, "Luca Ferri", "DEF"),
-        (3, "Owen Tate", "DEF"), (6, "Jonah Reyes", "MID"), (8, "Ethan Vale", "MID"), (10, "Ade Bakare", "MID"),
-        (7, "Ryo Takeda", "FWD"), (9, "Callum Shaw", "FWD"), (11, "Mateo Quint", "FWD"),
-    ]), bench=_squad("N", [(14, "Nico Barros", "MID")]))
-    away = Team(AWAY, "RVA", "Riverside Athletic", "Riverside", "#2e86de", _squad("R", [
-        (1, "Piet Janssen", "GK"), (2, "Felix Moreau", "DEF"), (5, "Isaac Duru", "DEF"), (6, "Henrik Lund", "DEF"),
-        (3, "Yusuf Kaya", "DEF"), (4, "Danny Cole", "MID"), (8, "Theo Marsh", "MID"), (10, "Samir Haddad", "MID"),
-        (7, "Leo Varga", "FWD"), (9, "Malik Otieno", "FWD"), (11, "Jamie Rook", "FWD"),
-    ]), bench=_squad("R", [(14, "Brian Wanjala", "FWD")]))
-    return MatchMeta(f"ml-{seed:04d}", "Synthetic Premier Match", "Northbridge Park", home, away, seed)
+    from .scenarios import build_meta, get_scenario
 
+    return build_meta(get_scenario("press-trap"), seed)
 
-# A dominant home first half, a tactical switch by the away side just before the hour,
-# then a comeback. The switch is never emitted as an event: the engine must detect it.
-DEFAULT_STORY = Storyline(
-    phases=[(0.0, "possession", "low_block"), (56 * 60.0, "possession", "high_press")],
-    goals=[(22 * 60 + 40.0, HOME, "N9"), (63 * 60 + 30.0, AWAY, "R9"), (80 * 60 + 50.0, AWAY, "R9")],
-    subs=[(55 * 60 + 40.0, AWAY, "R11", "R14")],
-)
 
 ROLE_CENTRES = {"DEF": (28.0, 18.0), "MID": (55.0, 22.0), "FWD": (84.0, 16.0)}
 
 
 class MatchSimulator:
-    def __init__(self, meta: MatchMeta | None = None, story: Storyline = DEFAULT_STORY):
-        self.meta = meta or default_meta()
+    def __init__(self, meta: MatchMeta, story: Storyline):
+        self.meta = meta
         self.story = story
         self.rng = random.Random(self.meta.seed)
 
@@ -286,9 +266,13 @@ class MatchSimulator:
         return ev
 
 
-def generate_match(seed: int = 7) -> tuple[MatchMeta, list[Event]]:
-    meta = default_meta(seed)
-    return meta, MatchSimulator(meta).generate()
+def generate_match(seed: int | None = None, scenario: str = "press-trap") -> tuple[MatchMeta, list[Event]]:
+    """Play a storyline. Each scenario has a default seed; any other seed is a new, reproducible match."""
+    from .scenarios import build_meta, get_scenario
+
+    sc = get_scenario(scenario)
+    meta = build_meta(sc, sc.seed if seed is None else seed)
+    return meta, MatchSimulator(meta, sc.story).generate()
 
 
 def save_match(path: Path, meta: MatchMeta, events: list[Event]) -> None:

@@ -6,6 +6,9 @@ const api = process.env.VITE_API_PROXY ?? "http://localhost:8010";
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173, proxy: { "/api": { target: api, changeOrigin: true } } },
+  server: {
+    port: 5173,
+    proxy: Object.fromEntries(["/api", "/mcp", "/docs", "/openapi.json", "/health"].map((p) => [p, { target: api, changeOrigin: true }])),
+  },
   build: { target: "es2022", sourcemap: false },
 });

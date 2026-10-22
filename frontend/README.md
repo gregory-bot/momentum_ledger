@@ -1,49 +1,52 @@
-# Momentum Ledger · Frontend
+# Dangote · Frontend
 
-React 19 + TypeScript + Vite. A live broadcast view with verified overlays, viewer personalization, a trust panel and multiview. See the [root README](../README.md) for the full picture.
+The Dangote control room: React 19 + TypeScript + Vite, Consolas throughout. See the [root README](../README.md) for the full picture.
 
 ## Run
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (proxies /api to http://localhost:8010)
+npm run dev        # http://localhost:5173 (proxies /api and /mcp to http://localhost:8010)
 npm run build      # strict type-check + production build to dist/
 ```
 
-Point the dev proxy at another backend with `VITE_API_PROXY=http://host:port npm run dev`. For a separately hosted API, build with `VITE_API_URL=https://api.example.com`.
+Point the dev proxy elsewhere with `VITE_API_PROXY=http://host:port npm run dev`; for a separately hosted API, build with `VITE_API_URL=https://api.example.com`.
 
-## Design
+## How it works
 
-- **Mobile first.** On phones, graphics appear in a "Now on air" card *below* the pitch so they never hide the play. From 720px up they're keyed over the pitch like broadcast graphics.
-- **Plain language.** "Why you can trust this" explains the selected line: who is involved, the numbers behind it, and each check it passed. The raw overlay JSON is tucked behind a developer toggle.
-- **Blue broadcast theme** with tabular numbers, high-contrast text and reduced-motion support.
+The app fetches one **match pack** (`/api/matches/prepare`) with the events, a state timeline and every
+verified overlay for the viewer, then plays it on a local clock. Pausing, scrubbing and speed changes cost
+nothing; changing viewer mode only re-fetches the overlays (cached server-side).
 
 ## Structure
 
 ```
 src/
-├── App.tsx                    layout, viewer state, selection, deep links
+├── App.tsx                 shell: launch → studio, tabs, deep links, keyboard
+├── views/
+│   ├── Launch.tsx          storyline picker
+│   ├── ControlRoom.tsx     rundown · stage · viewer modes · insight desk
+│   ├── MatchPack.tsx       lineups, stats, shot map, xG race, momentum river, players (lazy)
+│   ├── TrustLab.tsx        pipeline, fact-check desk, trust log (lazy)
+│   └── Developers.tsx      API console, MCP config, tools (lazy)
 ├── components/
-│   ├── TopBar.tsx             brand, match, live status, "Azure stack" popover
-│   ├── Broadcast.tsx          pitch screen, scorebug, stats strip
-│   ├── Pitch.tsx              SVG pitch (memoized markings, ball, action trail)
-│   ├── GraphicLayer.tsx       on-air graphic: goal flash, tactical panel, lower-third
-│   ├── ViewerPanel.tsx        "Make it yours": detail level, club, player, language, playback
-│   ├── InsightTabs.tsx        Live feed + Trust log tabs
-│   ├── ProofPanel.tsx         "Why you can trust this" (+ developer JSON view)
-│   ├── Multiview.tsx          three viewers side by side (lazy-loaded)
-│   └── CatchUpDialog.tsx      "I just joined" recap (bottom sheet on phones)
+│   ├── Header.tsx          brand, tabs, scoreboard
+│   ├── Transport.tsx       play/pause, speed, scrubber with moment markers, clock
+│   ├── Pitch.tsx           SVG pitch: live trails or 10' territory
+│   ├── OnAir.tsx           goal flash, tactical panel, lower third
+│   ├── Rundown.tsx         aired moments, replay from any
+│   ├── ViewerModes.tsx     persona, club, language, player lens
+│   ├── InsightDesk.tsx     facts and checks behind a line
+│   └── Dialogs.tsx         catch me up, compare 3 viewers
 ├── hooks/
-│   ├── useMatchStream.ts      SSE client, buffered and flushed once per animation frame
-│   └── useGraphicsQueue.ts    plays overlays by priority, like a vision mixer
+│   ├── usePlayback.ts      local theatre clock (≤30 renders/s)
+│   └── usePack.ts          match pack loader (keeps the old pack while re-rendering)
 └── lib/
-    ├── api.ts                 typed API client
-    ├── labels.ts              plain-language labels for facts, checks and sources
-    └── types.ts               API types
+    ├── api.ts · types.ts   typed API client
+    ├── derive.ts           state at any t: binary search + single-pass stats
+    └── labels.ts           plain-language labels
 ```
 
-## Performance notes
+## Keyboard
 
-- No UI framework or state library: 74 KB gzipped in total.
-- Stream updates are batched per animation frame, so the UI stays smooth at 600× replay.
-- Multiview streams use `ticks=false`, so the server sends overlays only.
+`space` play/pause · `←` `→` ±30 s · `1`–`4` tabs.

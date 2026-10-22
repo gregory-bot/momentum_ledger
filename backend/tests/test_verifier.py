@@ -2,10 +2,10 @@ from dataclasses import replace
 
 import pytest
 
-from momentum.agents.templates import TEMPLATE_LANGS, render
-from momentum.agents.verifier import Verifier
-from momentum.broadcast import Director, LiveSession
-from momentum.models import Profile
+from dangote.agents.templates import TEMPLATE_LANGS, render
+from dangote.agents.verifier import Verifier
+from dangote.broadcast import Director, LiveSession
+from dangote.models import Profile
 
 
 @pytest.fixture(scope="module")
@@ -52,8 +52,8 @@ def test_tampered_fact_fails_the_audit(full_pipeline, goal):
 @pytest.mark.parametrize("club", [None, "home", "away"])
 def test_every_template_line_verifies(full_pipeline, verifier, lang, persona, club):
     """No fault injection: every line the template narrator writes, for every insight, must pass."""
-    from momentum.agents.orchestrator import Orchestrator
-    from momentum.config import load_settings
+    from dangote.agents.orchestrator import Orchestrator
+    from dangote.config import load_settings
 
     orch = Orchestrator(full_pipeline.meta, full_pipeline.ledger, replace(load_settings(), inject_faults=False))
     profile = Profile(persona, club, None, lang)

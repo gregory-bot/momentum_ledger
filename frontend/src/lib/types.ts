@@ -1,4 +1,4 @@
-// Shapes returned by the Momentum Ledger API (backend/momentum/server.py).
+// Shapes returned by the Dangote API (backend/dangote/server.py).
 
 export type Side = "home" | "away";
 export type Persona = "casual" | "analyst";
@@ -29,37 +29,54 @@ export interface MatchMeta {
   seed: number;
 }
 
+export interface ClubSummary {
+  code: string;
+  name: string;
+  short: string;
+  color: string;
+}
+
+export interface Scenario {
+  id: string;
+  name: string;
+  tagline: string;
+  seed: number;
+  venue: string;
+  home: ClubSummary;
+  away: ClubSummary;
+}
+
 export interface AppConfig {
   meta: MatchMeta;
   events: number;
   languages: Record<string, string>;
   services: Record<string, string>;
+  scenarios: Scenario[];
 }
 
-export interface TickEvent {
+export interface PackEvent {
   id: string;
+  t: number;
   type: string;
-  team: Side | null;
-  player: string | null;
-  outcome: string | null;
-  x: number | null;
-  y: number | null;
-  end_x: number | null;
-  end_y: number | null;
+  team?: Side;
+  player?: string;
+  player_id?: string;
+  outcome?: string;
+  x?: number;
+  y?: number;
+  end_x?: number;
+  end_y?: number;
+  xg?: number;
 }
 
-export interface Tick {
+export interface Snapshot {
   t: number;
-  period: number;
   score: Record<Side, number>;
   momentum: number;
   chaos: number;
   possession_10m: number;
   shots: Record<Side, number>;
   xg: Record<Side, number>;
-  ball: [number, number] | null;
-  clock?: string;
-  event?: TickEvent;
 }
 
 export interface Check {
@@ -96,7 +113,6 @@ export interface Overlay {
   data: Record<string, string>;
   evidence: string[];
   verification: { status: "verified"; checks: Check[] };
-  latency_ms: number;
 }
 
 export type TrustStatus = "verified" | "blocked" | "error" | "note";
@@ -117,6 +133,19 @@ export interface TrustRecord {
   note: string;
 }
 
+export interface Pack {
+  scenario: Scenario;
+  seed: number;
+  meta: MatchMeta;
+  duration: number;
+  events: PackEvent[];
+  timeline: Snapshot[];
+  overlays: Overlay[];
+  trust: TrustRecord[];
+  profile: string;
+  services: Record<string, string>;
+}
+
 export interface CatchUp {
   type: "catch_up";
   minute: number;
@@ -125,14 +154,29 @@ export interface CatchUp {
   trust: TrustRecord[];
 }
 
+export interface FactClaim {
+  number: string;
+  clause: string;
+  subjects: string[];
+  supported: boolean;
+  matches: { subject: string; label: string; value: string }[];
+}
+
+export interface FactCheck {
+  verdict: "supported" | "unsupported" | "out_of_scope" | "no_claims";
+  minute: number;
+  text: string;
+  claims: FactClaim[];
+  names: string[];
+  out_of_scope: string[];
+  facts_checked: number;
+  events_in_ledger: number;
+  summary: string;
+}
+
 export interface Viewer {
   persona: Persona;
   club: Side | "";
   player: string;
   lang: string;
-}
-
-export interface Playback {
-  speed: number;
-  start: number;
 }

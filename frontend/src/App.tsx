@@ -1,121 +1,129 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Broadcast } from "./components/Broadcast";
-import { CatchUpDialog } from "./components/CatchUpDialog";
-import { InsightTabs } from "./components/InsightTabs";
-import { ProofPanel } from "./components/ProofPanel";
-import { TopBar } from "./components/TopBar";
-import { ViewerPanel } from "./components/ViewerPanel";
-import { useGraphicsQueue } from "./hooks/useGraphicsQueue";
-import { useMatchStream } from "./hooks/useMatchStream";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { CatchUpDialog, CompareDialog } from "./components/Dialogs";
+import { Header, type Tab } from "./components/Header";
+import { Transport } from "./components/Transport";
+import { usePack } from "./hooks/usePack";
+import { usePlayback } from "./hooks/usePlayback";
 import { api } from "./lib/api";
-import type { AppConfig, CatchUp, Overlay, Playback, Viewer } from "./lib/types";
+import { airedAt, minuteOf, snapshotAt } from "./lib/derive";
+import type { AppConfig, Overlay, Viewer } from "./lib/types";
+import { ControlRoom } from "./views/ControlRoom";
+import { Launch } from "./views/Launch";
 
-// Multiview opens three extra streams; load its code only when someone asks for it.
-const Multiview = lazy(() => import("./components/Multiview"));
+// Secondary tabs load on demand to keep the first paint small.
+const MatchPack = lazy(() => import("./views/MatchPack").then((m) => ({ default: m.MatchPack })));
+const TrustLab = lazy(() => import("./views/TrustLab").then((m) => ({ default: m.TrustLab })));
+const Developers = lazy(() => import("./views/Developers").then((m) => ({ default: m.Developers })));
 
-// Deep links preset the viewer, e.g. /?persona=analyst&club=away&lang=sw&start=60&autoplay=1
+// Deep links: /?scenario=press-trap&persona=analyst&club=away&lang=sw&t=58&tab=trust&autoplay=1
 const url = new URLSearchParams(window.location.search);
-const initialViewer: Viewer = {
-  persona: url.get("persona") === "analyst" ? "analyst" : "casual",
-  club: url.get("club") === "home" || url.get("club") === "away" ? (url.get("club") as Viewer["club"]) : "",
-  player: url.get("player") ?? "",
-  lang: url.get("lang") ?? "en",
-};
-const initialPlayback: Playback = {
-  speed: Number(url.get("speed")) || 30,
-  start: Math.min(89, Math.max(0, Number(url.get("start")) || 0)),
-};
+const TABS: Tab[] = ["control", "pack", "trust", "dev"];
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [viewer, setViewer] = useState<Viewer>(initialViewer);
-  const [playback, setPlayback] = useState<Playback>(initialPlayback);
-  const [multiview, setMultiview] = useState<Playback | null>(null);
-  const [catchUp, setCatchUp] = useState<{ data: CatchUp | null; error: string | null } | null>(null);
-  const [activeSpeed, setActiveSpeed] = useState(playback.speed);
-  const [selectedId, setSelectedId] = useState<string | undefined>();
-  const multiRef = useRef<HTMLDivElement>(null);
+  const [bootError, setBootError] = useState<string | null>(null);
+  const [scenario, setScenario] = useState<string | null>(url.get("scenario"));
+  const [tab, setTab] = useState<Tab>(TABS.includes(url.get("tab") as Tab) ? (url.get("tab") as Tab) : "control");
+  const [viewer, setViewer] = useState<Viewer>({
+    persona: url.get("persona") === "analyst" ? "analyst" : "casual",
+    club: url.get("club") === "home" || url.get("club") === "away" ? (url.get("club") as Viewer["club"]) : "",
+    player: url.get("player") ?? "",
+    lang: url.get("lang") ?? "en",
+  });
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<{ kind: "catchup" | "compare"; minute: number } | null>(null);
+  const [factPreset, setFactPreset] = useState<{ text: string; minute: number } | null>(null);
 
-  const stream = useMatchStream();
-  const onAir = useGraphicsQueue(stream.overlays, activeSpeed);
+  const { pack, loading, error } = usePack(scenario, viewer);
+  const startAt = useMemo(() => Math.max(0, Number(url.get("t")) || 0) * 60, []);
+  const pb = usePlayback(pack?.duration ?? 5400, startAt, url.get("autoplay") === "1");
 
   useEffect(() => {
-    const ctrl = new AbortController();
-    api.config(ctrl.signal).then(setConfig).catch((e: Error) => {
-      if (e.name !== "AbortError") setLoadError(e.message);
-    });
-    return () => ctrl.abort();
+    api.config().then(setConfig).catch((e: Error) => setBootError(e.message));
   }, []);
 
-  const select = useCallback((o: Overlay) => setSelectedId(o.id), []);
-  const selected = stream.overlays.find((o) => o.id === selectedId) ?? stream.overlays[0];
-
-  const watch = useCallback(() => {
-    setSelectedId(undefined);
-    setActiveSpeed(playback.speed);
-    stream.start(api.streamUrl(viewer, playback));
-  }, [playback, stream, viewer]);
-
-  const autoplayed = useRef(false);
   useEffect(() => {
-    if (config && url.get("autoplay") === "1" && !autoplayed.current) {
-      autoplayed.current = true;
-      watch();
-    }
-  }, [config, watch]);
+    const q = new URLSearchParams();
+    if (scenario) q.set("scenario", scenario);
+    if (tab !== "control") q.set("tab", tab);
+    if (viewer.persona !== "casual") q.set("persona", viewer.persona);
+    if (viewer.club) q.set("club", viewer.club);
+    if (viewer.player) q.set("player", viewer.player);
+    if (viewer.lang !== "en") q.set("lang", viewer.lang);
+    window.history.replaceState(null, "", q.toString() ? `?${q}` : window.location.pathname);
+  }, [scenario, tab, viewer]);
 
-  const openCatchUp = useCallback(async () => {
-    const live = stream.status === "live" && stream.tick;
-    const minute = live ? Math.floor(stream.tick!.t / 60) + 1 : playback.start || 60;
-    setCatchUp({ data: null, error: null });
-    try {
-      setCatchUp({ data: await api.catchUp(viewer, Math.max(1, minute)), error: null });
-    } catch (e) {
-      setCatchUp({ data: null, error: (e as Error).message });
-    }
-  }, [playback.start, stream.status, stream.tick, viewer]);
+  const start = useCallback((id: string) => {
+    setScenario(id);
+    setSelectedId(null);
+    setTab("control");
+    pb.seek(0);
+    pb.play();
+  }, [pb]);
 
-  const openMultiview = useCallback(() => {
-    setMultiview({ ...playback });
-    requestAnimationFrame(() => multiRef.current?.scrollIntoView({ behavior: "smooth" }));
-  }, [playback]);
+  const select = useCallback((o: Overlay) => setSelectedId(o.id), []);
+  const factCheck = useCallback((text: string, minute: number) => {
+    setFactPreset({ text, minute });
+    setTab("trust");
+  }, []);
 
-  if (loadError) {
+  // Keyboard: space = play/pause, ←/→ = 30s, 1-4 = tabs.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!pack || (e.target as HTMLElement).closest("input, textarea, select")) return;
+      if (e.key === " ") { e.preventDefault(); pb.toggle(); }
+      else if (e.key === "ArrowRight") pb.seek(pb.t + 30);
+      else if (e.key === "ArrowLeft") pb.seek(pb.t - 30);
+      else if (["1", "2", "3", "4"].includes(e.key)) setTab(TABS[Number(e.key) - 1]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pack, pb]);
+
+  if (bootError) {
     return (
-      <div className="boot error">
-        <h1>Momentum Ledger</h1>
-        <p>Can't reach the API ({loadError}). Start it with <code>python -m momentum serve</code> in <code>backend/</code>.</p>
+      <div className="boot">
+        <div className="brand big"><span className="wordmark">DANGOTE</span></div>
+        <p className="bad">can't reach the API ({bootError})</p>
+        <p className="dim">start it with <code>python -m dangote serve</code> in <code>backend/</code></p>
       </div>
     );
   }
-  if (!config) return <div className="boot">Loading match…</div>;
+  if (!config) return <div className="boot"><span className="blink">booting studio…</span></div>;
+  if (!scenario) return <Launch config={config} onStart={start} />;
+
+  const selected = pack?.overlays.find((o) => o.id === selectedId) ?? (pack ? airedAt(pack.overlays, pb.t)[0] : undefined);
+  const snap = pack ? snapshotAt(pack, pb.t) : null;
 
   return (
-    <>
-      <TopBar meta={config.meta} services={config.services} status={stream.status} />
-      <main className="layout">
-        <div className="area-stage">
-          <Broadcast meta={config.meta} tick={stream.tick} trail={stream.trail} onAir={onAir} onSelect={select} />
-        </div>
-        <aside className="area-side">
-          <ViewerPanel config={config} viewer={viewer} playback={playback} live={stream.status === "live"}
-            onViewer={setViewer} onPlayback={setPlayback} onWatch={watch} onCatchUp={openCatchUp} onMultiview={openMultiview} />
-          <InsightTabs overlays={stream.overlays} trust={stream.trust} counts={stream.counts}
-            selectedId={selected?.id} onSelect={select} />
-        </aside>
-        <div className="area-proof">
-          <ProofPanel overlay={selected} />
-        </div>
-        <div ref={multiRef} className="area-multi">
-          {multiview && (
-            <Suspense fallback={<section className="card">Loading…</section>}>
-              <Multiview config={config} playback={multiview} />
-            </Suspense>
-          )}
-        </div>
+    <div className="studio">
+      <Header pack={pack} snap={snap} t={pb.t} tab={tab} onTab={setTab} onNewMatch={() => { pb.pause(); setScenario(null); }} />
+      <main className="main">
+        {error && <p className="bad pad">{error}</p>}
+        {!pack ? (
+          <div className="boot inline"><span className="blink">simulating · interpreting · verifying…</span></div>
+        ) : (
+          <Suspense fallback={<div className="boot inline"><span className="blink">loading…</span></div>}>
+            {tab === "control" && (
+              <ControlRoom pack={pack} pb={pb} viewer={viewer} languages={config.languages} loading={loading}
+                selected={selected} following={selectedId === null} onViewer={setViewer} onSelect={select}
+                onFollow={() => setSelectedId(null)} onFactCheck={factCheck}
+                onCatchUp={() => setDialog({ kind: "catchup", minute: Math.min(90, minuteOf(pb.t)) })}
+                onCompare={() => setDialog({ kind: "compare", minute: 0 })} />
+            )}
+            {tab === "pack" && <MatchPack pack={pack} t={pb.t} />}
+            {tab === "trust" && <TrustLab pack={pack} t={pb.t} preset={factPreset} />}
+            {tab === "dev" && <Developers scenario={pack.scenario.id} />}
+          </Suspense>
+        )}
       </main>
-      {catchUp && <CatchUpDialog data={catchUp.data} error={catchUp.error} onClose={() => setCatchUp(null)} />}
-    </>
+      {pack && <Transport pb={pb} duration={pack.duration} overlays={pack.overlays} />}
+      {pack && dialog?.kind === "catchup" && (
+        <CatchUpDialog scenario={pack.scenario.id} viewer={viewer} minute={dialog.minute} onClose={() => setDialog(null)} />
+      )}
+      {pack && dialog?.kind === "compare" && (
+        <CompareDialog scenario={pack.scenario.id} meta={pack.meta} languages={config.languages} t={pb.t} onClose={() => setDialog(null)} />
+      )}
+    </div>
   );
 }
