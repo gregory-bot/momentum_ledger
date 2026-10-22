@@ -4,7 +4,7 @@ import { clockOf, minuteOf } from "../lib/derive";
 import { KIND_LABELS } from "../lib/labels";
 import type { Overlay } from "../lib/types";
 
-const SPEEDS = [10, 30, 60, 120];
+const SPEEDS = [1, 2, 4, 10, 30];
 
 const Markers = memo(function Markers({ overlays, duration, onSeek }: {
   overlays: Overlay[];

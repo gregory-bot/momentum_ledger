@@ -81,7 +81,7 @@ export function ControlRoom(p: Props) {
           <div className="screen">
             {(() => {
               const follow = (id: string) => { setFollowId(id); setMode("player"); };
-              const svg = <Pitch3D pack={pack} t={pb.t} mode={mode} followId={followId} onFollow={follow} />;
+              const svg = <Pitch3D pack={pack} t={pb.t} playing={pb.playing} mode={mode} followId={followId} onFollow={follow} />;
               return WEBGL ? (
                 <Suspense fallback={svg}>
                   <Monitor3D pack={pack} t={pb.t} speed={pb.speed} playing={pb.playing} mode={mode} followId={followId} onFollow={follow} />
