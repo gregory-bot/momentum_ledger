@@ -12,11 +12,10 @@ import { ControlRoom } from "./views/ControlRoom";
 // Secondary tabs load on demand to keep the first paint small.
 const MatchPack = lazy(() => import("./views/MatchPack").then((m) => ({ default: m.MatchPack })));
 const TrustLab = lazy(() => import("./views/TrustLab").then((m) => ({ default: m.TrustLab })));
-const Developers = lazy(() => import("./views/Developers").then((m) => ({ default: m.Developers })));
 
 // Deep links: /?scenario=press-trap&persona=analyst&club=away&lang=sw&t=58&tab=trust&autoplay=1
 const url = new URLSearchParams(window.location.search);
-const TABS: Tab[] = ["control", "pack", "trust", "dev"];
+const TABS: Tab[] = ["control", "pack", "trust"];
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -72,14 +71,14 @@ export default function App() {
     setTab("trust");
   }, []);
 
-  // Keyboard: space = play/pause, ←/→ = 30s, 1-4 = tabs.
+  // Keyboard: space = play/pause, ←/→ = 30s, 1-3 = tabs.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!pack || (e.target as HTMLElement).closest("input, textarea, select")) return;
       if (e.key === " ") { e.preventDefault(); pb.toggle(); }
       else if (e.key === "ArrowRight") pb.seek(pb.t + 30);
       else if (e.key === "ArrowLeft") pb.seek(pb.t - 30);
-      else if (["1", "2", "3", "4"].includes(e.key)) setTab(TABS[Number(e.key) - 1]);
+      else if (["1", "2", "3"].includes(e.key)) setTab(TABS[Number(e.key) - 1]);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -119,7 +118,6 @@ export default function App() {
             )}
             {tab === "pack" && <MatchPack pack={pack} t={pb.t} />}
             {tab === "trust" && <TrustLab pack={pack} t={pb.t} preset={factPreset} />}
-            {tab === "dev" && <Developers scenario={pack.scenario.id} />}
           </Suspense>
         )}
       </main>

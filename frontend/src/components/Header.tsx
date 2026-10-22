@@ -1,12 +1,11 @@
 import type { Pack, Scenario, Snapshot } from "../lib/types";
 
-export type Tab = "control" | "pack" | "trust" | "dev";
+export type Tab = "control" | "pack" | "trust";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "control", label: "Control room" },
   { id: "pack", label: "Match pack" },
   { id: "trust", label: "Trust lab" },
-  { id: "dev", label: "Developers" },
 ];
 
 interface Props {
