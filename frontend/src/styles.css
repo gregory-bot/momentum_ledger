@@ -360,26 +360,6 @@ select, input[type="number"], textarea { width: 100%; padding: 7px 9px; border-r
 .inj { display: inline-block; margin-top: 4px; font-size: 10px; padding: 1px 6px; border-radius: 4px; color: var(--amber); border: 1px solid rgba(255, 181, 71, .4); }
 @media (min-width: 900px) { .trustlab { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-/* ---------- developers ---------- */
-.dev { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 1000px) { .dev { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); } }
-.eps { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 2px; }
-.eps button { width: 100%; display: grid; grid-template-columns: 46px minmax(0, auto) 1fr; gap: 10px; align-items: baseline; text-align: left; padding: 7px 8px; border-radius: 6px; border: 1px solid transparent; background: none; }
-.eps button:hover { background: var(--panel-2); }
-.eps button.on { border-color: var(--accent); }
-.eps code { color: var(--text); white-space: nowrap; }
-.eps .dim { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m { font-size: 10px; font-weight: 700; text-align: center; padding: 1px 4px; border-radius: 3px; }
-.m-GET { color: var(--mint); border: 1px solid rgba(46, 230, 166, .4); }
-.m-POST { color: var(--amber); border: 1px solid rgba(255, 181, 71, .4); }
-.console { grid-row: span 2; }
-.snippet { position: relative; margin: 8px 0 12px; }
-.snippet .json { margin: 0; }
-.snippet .ghost { position: absolute; top: 8px; right: 8px; background: var(--panel); }
-.tools { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.tools li { display: grid; gap: 2px; }
-.tools code { color: var(--accent-2); }
-
 /* ---------- dialogs ---------- */
 .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: end center; background: rgba(2, 4, 10, .72); animation: fade .15s ease-out; }
 .modal-card { width: 100%; max-height: 88vh; overflow: auto; padding: 18px; border-radius: 14px 14px 0 0; background: var(--panel); border: 1px solid var(--line-2); animation: rise .2s ease-out; }

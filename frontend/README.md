@@ -26,8 +26,7 @@ src/
 ├── views/
 │   ├── ControlRoom.tsx     rundown · stage · viewer modes · insight desk
 │   ├── MatchPack.tsx       lineups, stats, shot map, xG race, momentum river, players (lazy)
-│   ├── TrustLab.tsx        pipeline, fact-check desk, trust log (lazy)
-│   └── Developers.tsx      API console, MCP config, tools (lazy)
+│   └── TrustLab.tsx        pipeline, fact-check desk, trust log (lazy)
 ├── components/
 │   ├── Header.tsx          brand, tabs, scoreboard, storyline picker
 │   ├── Transport.tsx       play/pause, speed, scrubber with moment markers, clock
@@ -77,4 +76,4 @@ fails if any player exceeds 12 m/s or the ball carrier drifts > 3 m from the bal
 
 ## Keyboard
 
-`space` play/pause · `←` `→` ±30 s · `1`–`4` tabs.
+`space` play/pause · `←` `→` ±30 s · `1`–`3` tabs.

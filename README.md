@@ -69,10 +69,9 @@ The web app (`frontend/`) is a broadcast control room:
 | **Control room** | Rundown of aired moments (replay from any of them), a **3D broadcast monitor** with all 22 players (tactical, follow-ball and click-to-follow player cameras) plus a **Territory** view (who controlled which zones in the last 10'), on-air graphics, live ticker, momentum / possession / chaos / xG meters, viewer modes, and an **Insight desk** showing the facts and checks behind each line. A transport bar plays, pauses, scrubs and jumps to goals at 10–120×. |
 | **Match pack** | Average-position lineups, live team stats, shot map (area = xG), **xG race** and **momentum river** charts, and a sortable player table, all recomputed for the current minute. |
 | **Trust lab** | The verification pipeline with live counts, the full trust log (every blocked draft and why), and the **Fact-check desk**: paste any sentence, pick a minute, and see every number traced to a fact, or flagged. |
-| **Developers** | Every REST endpoint runnable in an in-page console, the MCP config to copy, and the tool list. |
 
 Also: **Compare 3 viewers** (three verified tellings of the same match, synced to the clock), keyboard
-control (space, ←/→, 1–4), and deep links (`?scenario=press-trap&t=62&club=away&lang=sw&autoplay=1`).
+control (space, ←/→, 1–3), and deep links (`?scenario=press-trap&t=62&club=away&lang=sw&autoplay=1`).
 Typography is Consolas throughout (Inconsolata where Consolas isn't installed).
 
 ## How verification works
@@ -243,7 +242,7 @@ cd backend && python -m dangote publish --scenario press-trap --speed 30
 
 ## Performance
 
-- **Web**: ~80 KB gzipped first load; Match pack, Trust lab and Developers are code-split. Playback runs on a local clock (pause, scrub, speed changes are instant); the clock re-renders at most 30×/s; every derived value is a binary search or one pass over the events.
+- **Web**: ~80 KB gzipped first load; Match pack and Trust lab are code-split. Playback runs on a local clock (pause, scrub, speed changes are instant); the clock re-renders at most 30×/s; every derived value is a binary search or one pass over the events.
 - **API**: match pack 60–200 ms cold, ~15 ms cached; config ~1 ms; orjson + gzip; uvloop/httptools; the default storyline warms at startup.
 
 ## Testing
