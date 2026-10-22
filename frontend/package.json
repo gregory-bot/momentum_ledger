@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "qa:motion": "node scripts/motion-check.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -19,6 +20,7 @@
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "puppeteer-core": "^23.11.1",
     "typescript": "~5.9.3",
     "vite": "^8.3.5"
   }

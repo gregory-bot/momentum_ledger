@@ -18,6 +18,12 @@ from .models import AWAY, HOME, MatchMeta, minute_of
 
 CLAUSE = re.compile(r"[^.;!?\n]+")
 
+STAT_WORDS = {
+    "goal": "goals", "scor": "goals", "shot": "shots", "pass": "passes completed", "tackl": "tackles + interceptions",
+    "intercept": "tackles + interceptions", "press": "pressures", "possession": "possession %", "ball": "possession %",
+    "xg": "xG", "expected": "xG",
+}
+
 
 @dataclass
 class Fact:
@@ -80,8 +86,13 @@ def fact_check(meta: MatchMeta, ledger: Ledger, minute: float, text: str, lang: 
                 if not any(canonical != s and pattern in s for s in subjects):
                     subjects.append(canonical)
         mentioned += [s for s in subjects if s not in mentioned]
+        # If the clause names a stat ("goals", "shots"...), a number must match *that* stat.
+        lowered = clause.lower()
+        stats = {label for word, label in STAT_WORDS.items() if re.search(rf"\b{word}", lowered)}
         for token in numbers_in(clause):
             pool = [f for f in facts if f.subject in subjects] if subjects else facts
+            if stats:
+                pool = [f for f in pool if f.label in stats]
             pool += [f for f in facts if f.subject == "match" and f not in pool]
             hits = [f for f in pool if _matches(token, f.value)]
             claims.append({

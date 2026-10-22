@@ -82,15 +82,18 @@ function endOf(e: PackEvent): [number, number] {
 
 const BALL_EVENTS = new Set(["pass", "carry", "shot", "tackle", "interception", "possession_change", "goal", "pressure"]);
 
-export function frameAt(pack: Pack, slots: Slot[], t: number): Frame {
-  const ev = pack.events;
+function around(ev: PackEvent[], t: number) {
   let i = lastIndexAtOrBefore(ev, t, (e) => e.t);
   while (i > 0 && !BALL_EVENTS.has(ev[i].type)) i--;
   const e = i >= 0 ? ev[i] : undefined;
   let next: PackEvent | undefined;
   for (let j = i + 1; j < ev.length; j++) if (BALL_EVENTS.has(ev[j].type)) { next = ev[j]; break; }
+  return { i, e, next };
+}
 
-  // ---- ball --------------------------------------------------------------------------------
+/** Ball position at t, plus how far through its current flight it is (1 = landed). */
+export function ballAt(ev: PackEvent[], t: number) {
+  const { e, next } = around(ev, t);
   let ball = { x: L / 2, y: W / 2, z: 0 };
   let flight = 1;
   if (e) {
@@ -114,6 +117,18 @@ export function frameAt(pack: Pack, slots: Slot[], t: number): Frame {
     }
   }
 
+  return { ball, flight };
+}
+
+export function frameAt(pack: Pack, slots: Slot[], t: number): Frame {
+  const ev = pack.events;
+  const { i, e } = around(ev, t);
+  const { ball, flight } = ballAt(ev, t);
+  // Teams shuffle with where the ball has *been* over the last few seconds, not its instant
+  // position, the way a defensive block slides rather than snapping to every pass.
+  const recent = [ball, ballAt(ev, t - 1.5).ball, ballAt(ev, t - 3).ball, ballAt(ev, t - 4.5).ball];
+  const shape = { x: recent.reduce((a, b) => a + b.x, 0) / 4, y: recent.reduce((a, b) => a + b.y, 0) / 4 };
+
   // ---- who has it --------------------------------------------------------------------------
   let k = i;
   while (k > 0 && ev[k].type === "pressure") k--;
@@ -131,10 +146,30 @@ export function frameAt(pack: Pack, slots: Slot[], t: number): Frame {
   }
   if (holder) possession = slots.find((s) => s.player.id === holder)?.side ?? possession;
   const presser = e?.type === "pressure" && t - e.t < 4 ? e.player_id ?? null : null;
+  // Everyone involved in the plays coming up in the next few seconds starts moving toward them
+  // early (tacklers, interceptors, pressers, and the target of each pass), so they arrive as the
+  // play happens instead of appearing at the ball.
+  const LEAD = 5;
+  const plans = new Map<string, { x: number; y: number; w: number }>();
+  for (let j = i + 1, n = 0; j < ev.length && n < 6; j++) {
+    const u = ev[j];
+    if (u.t - t >= LEAD) break;
+    if (!BALL_EVENTS.has(u.type)) continue;
+    n++;
+    const lead = clamp(1 - (u.t - t) / LEAD, 0, 1);
+    if (u.player_id && u.player_id !== holder && !plans.has(u.player_id)) {
+      const [px, py] = startOf(u);
+      plans.set(u.player_id, { x: px, y: py, w: Math.min(1, lead * 1.15) });
+    }
+    if (u.type === "pass" && u.outcome === "success" && u.receiver_id && !plans.has(u.receiver_id)) {
+      const [ex, ey] = endOf(u);
+      plans.set(u.receiver_id, { x: ex, y: ey, w: lead * lead * (3 - 2 * lead) * 0.85 });
+    }
+  }
 
   // ---- everyone else -------------------------------------------------------------------------
   const pins: Pin[] = slots.map((s) => {
-    const [bx, by] = toRel(s.side, ball.x, ball.y);
+    const [bx, by] = toRel(s.side, shape.x, shape.y);
     const attacking = possession === s.side;
     const [ox, oy] = s.base;
     let x: number;
@@ -156,9 +191,16 @@ export function frameAt(pack: Pack, slots: Slot[], t: number): Frame {
       [ax, ay] = [ball.x, ball.y];
       role = "holder";
     } else if (s.player.id === runner && owner) {
+      // Continue from where the anticipation run left him (85% of the way) to the landing spot.
       const [ex, ey] = endOf(owner);
-      ax = lerp(ax, ex, clamp(flight * 1.3, 0, 1));
-      ay = lerp(ay, ey, clamp(flight * 1.3, 0, 1));
+      const sx = lerp(ax, ex, 0.85), sy = lerp(ay, ey, 0.85);
+      ax = lerp(sx, ex, clamp(flight * 1.3, 0, 1));
+      ay = lerp(sy, ey, clamp(flight * 1.3, 0, 1));
+      role = "runner";
+    } else if (plans.has(s.player.id)) {
+      const plan = plans.get(s.player.id)!;
+      ax = lerp(ax, plan.x, plan.w);
+      ay = lerp(ay, plan.y, plan.w);
       role = "runner";
     } else if (s.player.id === presser) {
       ax = lerp(ax, ball.x, 0.85);

@@ -85,31 +85,33 @@ class MatchSimulator:
         self.on_pitch = {HOME: list(self.meta.home.players), AWAY: list(self.meta.away.players)}
 
         self._emit("kickoff", HOME, extras={"home": self.meta.home.name, "away": self.meta.away.name})
-        side, ball = HOME, (LENGTH / 2, WIDTH / 2)
+        side, ball, holder = HOME, (LENGTH / 2, WIDTH / 2), None
         while True:
-            result = self._possession(side, ball)
+            result = self._possession(side, ball, holder)
             if result is None:
                 if self.period == 1:
                     self.t = HALF
                     self._emit("half_time", None)
                     self.period = 2
                     self._emit("kickoff", AWAY)
-                    side, ball = AWAY, (LENGTH / 2, WIDTH / 2)
+                    side, ball, holder = AWAY, (LENGTH / 2, WIDTH / 2), None
                     continue
                 self.t = FULL
                 self._emit("full_time", None)
                 break
-            side, ball = result
+            side, ball, holder = result
         return self.events
 
     # -- generation -----------------------------------------------------------------------------
 
-    def _possession(self, side: str, ball: tuple[float, float]) -> tuple[str, tuple[float, float]] | None:
+    def _possession(self, side: str, ball: tuple[float, float],
+                    winner: Player | None = None) -> tuple[str, tuple[float, float], Player | None] | None:
         rng = self.rng
         opp = other(side)
         self.possession_id += 1
         x, y = ball
-        holder = self._pick(side, x)
+        # The player who won the ball keeps it; otherwise whoever is nearest that zone collects it.
+        holder = winner if winner and winner in self.on_pitch[side] else self._pick(side, x)
         ax, ay = to_abs(side, x, y)
         self._emit("possession_change", side, holder.id, ax, ay)
         last_passer: Player | None = None
@@ -135,7 +137,9 @@ class MatchSimulator:
             if not pressured and rng.random() < 0.16:
                 length = rng.uniform(5, 18)
                 ang = rng.gauss(0, 0.5)
-                ex, ey = clamp(x + length * math.cos(ang), 1, 104), clamp(y + length * math.sin(ang), 1, 67)
+                if x > 92:  # near the byline, dribbles turn inside rather than run out of pitch
+                    ang = rng.choice([math.pi / 2, -math.pi / 2]) + rng.gauss(0, 0.4)
+                ex, ey = clamp(x + length * math.cos(ang), 4, 101), clamp(y + length * math.sin(ang), 2, 66)
                 speed = round(clamp(rng.gauss(24, 5), 12, 35.5), 1)
                 self._emit("carry", side, holder.id, *to_abs(side, x, y), *to_abs(side, ex, ey),
                            outcome="success", extras={"speed_kmh": speed, "distance_m": round(length, 1)})
@@ -144,11 +148,12 @@ class MatchSimulator:
 
             directness = 0.85 if due is not None else att.directness
             length = clamp(rng.gauss(att.pass_length + (6 if due is not None else 0), 7), 5, 55)
-            forward = rng.random() < directness
+            # Deep in the final third the ball is cut back or switched, not played along the byline.
+            forward = rng.random() < directness and x < 90
             ang = rng.gauss(0, 0.45) if forward else rng.choice([
                 rng.gauss(math.pi / 2, 0.4), rng.gauss(-math.pi / 2, 0.4), rng.gauss(math.pi, 0.5)])
-            ex = clamp(x + length * math.cos(ang), 1, 104)
-            ey = clamp(y + length * math.sin(ang), 1, 67)
+            ex = clamp(x + length * math.cos(ang), 4, 101)
+            ey = clamp(y + length * math.sin(ang), 2, 66)
             lines = lines_broken(x, ex, dfn.press_height)
             p = att.pass_success - (0.26 if pressured else 0) - 0.005 * max(0, length - 18) - 0.05 * lines
             if due is not None:
@@ -170,13 +175,13 @@ class MatchSimulator:
                 self._emit("interception", opp, winner.id, wx, wy, outcome="success")
             else:
                 self._emit("tackle", opp, winner.id, wx, wy, outcome="success", extras={"on": receiver.id})
-            return opp, (LENGTH - ex, WIDTH - ey)
+            return opp, (LENGTH - ex, WIDTH - ey), winner
 
         # Long possession finally recycled to the keeper and cleared.
-        return opp, (rng.uniform(40, 60), rng.uniform(10, 58))
+        return opp, (rng.uniform(40, 60), rng.uniform(10, 58)), None
 
     def _shot(self, side: str, holder: Player, x: float, y: float, due: int | None,
-              last_passer: Player | None) -> tuple[str, tuple[float, float]]:
+              last_passer: Player | None) -> tuple[str, tuple[float, float], Player | None]:
         rng = self.rng
         shooter = holder
         if due is not None:
@@ -203,10 +208,13 @@ class MatchSimulator:
             assist = last_passer.id if last_passer and last_passer.id != shooter.id else None
             self._emit("goal", side, shooter.id, ax, ay, extras={"shot": shot.id, "assist_id": assist})
             self.t += 50
-            return opp, (LENGTH / 2, WIDTH / 2)
+            return opp, (LENGTH / 2, WIDTH / 2), None
         if outcome == "blocked":
-            return opp, (LENGTH - x + rng.uniform(2, 8), WIDTH - y)
-        return opp, (rng.uniform(6, 12), rng.uniform(25, 43))
+            self.t += rng.uniform(1.5, 2.5)  # the loose ball takes a moment to collect
+            return opp, (LENGTH - x + rng.uniform(2, 8), WIDTH - y), None
+        # Saved or wide: the keeper restarts play.
+        keeper = next((p for p in self.on_pitch[opp] if p.role == "GK"), None)
+        return opp, (rng.uniform(4, 9), clamp(rng.gauss(34, 6), 24, 44)), keeper
 
     # -- helpers --------------------------------------------------------------------------------
 
@@ -234,7 +242,8 @@ class MatchSimulator:
 
     @staticmethod
     def _shot_zone(x: float, y: float) -> float:
-        return clamp((x - 80) / 20, 0, 1) * math.exp(-((y - WIDTH / 2) / 16) ** 2) * 0.5
+        in_box = x > 88.5 and 13.84 < y < 54.16
+        return clamp((x - 80) / 20, 0, 1) * math.exp(-((y - WIDTH / 2) / 16) ** 2) * 0.5 + (0.1 if in_box else 0)
 
     def _pick(self, side: str, rel_x: float, exclude: str | None = None,
               roles: tuple[str, ...] | None = None) -> Player:
@@ -246,7 +255,7 @@ class MatchSimulator:
                 w = 1.5 if rel_x < 18 else 0.0
             else:
                 centre, spread = ROLE_CENTRES[p.role]
-                w = math.exp(-(((rel_x - centre) / spread) ** 2)) + 0.03
+                w = math.exp(-(((rel_x - centre) / spread) ** 2)) + 0.004
             pool.append(p)
             weights.append(w)
         return self.rng.choices(pool, weights)[0]

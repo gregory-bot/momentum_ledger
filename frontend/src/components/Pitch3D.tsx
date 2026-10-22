@@ -68,12 +68,13 @@ const ROWS = 8;
 interface Props {
   pack: Pack;
   t: number;
+  playing?: boolean;
   mode: CamMode;
   followId: string | null;
   onFollow: (id: string) => void;
 }
 
-export function Pitch3D({ pack, t, mode, followId, onFollow }: Props) {
+export function Pitch3D({ pack, t, playing = false, mode, followId, onFollow }: Props) {
   const colors: Record<Side, string> = { home: pack.meta.home.color, away: pack.meta.away.color };
   const slots = useMemo(() => lineupAt(pack.meta, pack.events, t),
     // the eleven only change at substitutions: recompute once per match minute
@@ -83,8 +84,8 @@ export function Pitch3D({ pack, t, mode, followId, onFollow }: Props) {
   const follow = target.players.find((p) => p.id === followId);
 
   // Smooth players and camera in real time so cuts and possession switches glide.
-  const smooth = useRef<{ pos: Map<string, [number, number]>; cam: Camera | null; last: number }>({
-    pos: new Map(), cam: null, last: performance.now(),
+  const smooth = useRef<{ pos: Map<string, [number, number]>; cam: Camera | null; last: number; lastT: number }>({
+    pos: new Map(), cam: null, last: performance.now(), lastT: t,
   });
   const [, force] = useState(0);
   // On small screens the 1000-px-wide scene is scaled down; grow pins so numbers stay readable.
@@ -102,16 +103,22 @@ export function Pitch3D({ pack, t, mode, followId, onFollow }: Props) {
   const now = performance.now();
   const dt = Math.min(0.1, (now - s.last) / 1000);
   s.last = now;
-  const kp = 1 - Math.exp(-dt * 9);
   const kc = 1 - Math.exp(-dt * 3.5);
+  // Same rule as the WebGL monitor: human top speeds in match time; scrubs snap.
+  const dtm = t - s.lastT;
+  s.lastT = t;
+  const snap = dtm < 0 || dtm > 3 || (!playing && dtm !== 0);
   let moving = false;
   const players = target.players.map((p) => {
     const prev = s.pos.get(p.id);
     let x = p.x, y = p.y;
-    if (prev && Math.hypot(prev[0] - p.x, prev[1] - p.y) < 25) {
-      x = prev[0] + (p.x - prev[0]) * kp;
-      y = prev[1] + (p.y - prev[1]) * kp;
-      if (Math.hypot(x - p.x, y - p.y) > 0.05) moving = true;
+    if (prev && !snap) {
+      const gap = Math.hypot(p.x - prev[0], p.y - prev[1]);
+      const step = Math.min(gap, (p.role === "none" ? 8.5 : 10.5) * dtm);
+      if (gap > 1e-6) {
+        x = prev[0] + ((p.x - prev[0]) / gap) * step;
+        y = prev[1] + ((p.y - prev[1]) / gap) * step;
+      }
     }
     s.pos.set(p.id, [x, y]);
     return { ...p, x, y };

@@ -63,6 +63,19 @@ a number badge above. Tactical, follow-ball and player cameras glide between eac
 to follow them. three.js lives in its own lazy chunk, and `Pitch3D` (SVG) covers loading and devices
 without WebGL. Deep link a camera with `?cam=tactical|ball|player|territory`.
 
+## Motion QA
+
+Player motion is checked, not eyeballed. Players move at human speeds in match time (≤ 8.5 m/s off the
+ball, ≤ 10.5 m/s for whoever is in the play), everyone involved in the next 5 s of plays starts moving
+early (tacklers, interceptors, pass targets) so they arrive as it happens, and team shapes slide with
+where the ball has been rather than snapping to every pass. With the backend running:
+
+```bash
+npm run qa:motion -- "http://localhost:8010/?scenario=end-to-end&t=60&autoplay=1&speed=2"
+```
+
+fails if any player exceeds 12 m/s or the ball carrier drifts > 3 m from the ball in more than 5% of samples.
+
 ## Keyboard
 
 `space` play/pause · `←` `→` ±30 s · `1`–`4` tabs.

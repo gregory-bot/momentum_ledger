@@ -17,7 +17,7 @@ const FRAME_MS = 1000 / 30; // the clock re-renders at most 30 times a second
 export function usePlayback(duration: number, initial = 0, autoplay = false): Playback {
   const [t, setT] = useState(initial);
   const [playing, setPlaying] = useState(autoplay);
-  const [speed, setSpeed] = useState(30);
+  const [speed, setSpeed] = useState(() => Number(new URLSearchParams(window.location.search).get("speed")) || 1);
   const ref = useRef({ t: initial, last: 0, painted: 0 });
 
   useEffect(() => {

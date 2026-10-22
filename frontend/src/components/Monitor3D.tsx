@@ -352,6 +352,9 @@ export default function Monitor3D(props: Props) {
 
     let slots = lineupAt(pack.meta, pack.events, live.current.t);
     let slotMinute = Math.floor(live.current.t / 60);
+    let lastT = live.current.t;
+    let propT = live.current.t;
+    let propAt = performance.now();
     let last = performance.now();
     let first = true;
     let raf = 0;
@@ -363,13 +366,21 @@ export default function Monitor3D(props: Props) {
       const p = live.current;
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      const minute = Math.floor(p.t / 60);
+      // The app clock ticks ~30×/s; interpolate between ticks so motion is smooth at 60 fps.
+      if (p.t !== propT) { propT = p.t; propAt = now; }
+      const tv = p.playing ? propT + Math.min(0.05, (now - propAt) / 1000) * p.speed : propT;
+      const minute = Math.floor(tv / 60);
       if (minute !== slotMinute) {
-        slots = lineupAt(pack.meta, pack.events, p.t);
+        slots = lineupAt(pack.meta, pack.events, tv);
         slotMinute = minute;
       }
-      const frame = frameAt(pack, slots, p.t);
-      const kp = 1 - Math.exp(-dt * 9);
+      const frame = frameAt(pack, slots, tv);
+      // Players move at human speeds in *match* time: each frame they may close at most
+      // vmax * (match seconds elapsed) on their target. A scrub (jump back, or > 3 s forward,
+      // or any change while paused) snaps them instead.
+      const dtm = tv - lastT;
+      lastT = tv;
+      const snap = dtm < 0 || dtm > 3 || (!p.playing && dtm !== 0);
       const onPitch = new Set<string>();
       let followXZ: [number, number] | null = null;
 
@@ -379,15 +390,20 @@ export default function Monitor3D(props: Props) {
         onPitch.add(pin.id);
         let [x, y] = [pin.x, pin.y];
         const prev = f.last;
-        if (prev && Math.hypot(prev[0] - x, prev[1] - y) < 25) {
-          x = prev[0] + (x - prev[0]) * kp;
-          y = prev[1] + (y - prev[1]) * kp;
+        if (prev && !snap) {
+          const gap = Math.hypot(x - prev[0], y - prev[1]);
+          const vmax = pin.role === "none" ? 8.5 : 10.5; // m/s: jog-to-sprint off the ball, flat out on it
+          const step = Math.min(gap, vmax * dtm);
+          if (gap > 1e-6) {
+            x = prev[0] + ((x - prev[0]) / gap) * step;
+            y = prev[1] + ((y - prev[1]) / gap) * step;
+          }
         }
-        const dx = prev ? x - prev[0] : 0;
-        const dy = prev ? y - prev[1] : 0;
+        const dx = prev && !snap ? x - prev[0] : 0;
+        const dy = prev && !snap ? y - prev[1] : 0;
         f.last = [x, y];
         // Running speed in match time drives the stride; standing still when paused.
-        const kph = p.playing && dt > 0 ? Math.min(34, (Math.hypot(dx, dy) / (dt * Math.max(1, p.speed))) * 3.6) : 0;
+        const kph = !snap && dtm > 0 ? Math.min(36, (Math.hypot(dx, dy) / dtm) * 3.6) : 0;
         f.fig.group.visible = f.badge.visible = true;
         f.fig.group.position.set(wx(x), 0, wz(y));
         f.fig.update(dx, -dy, kph, dt);
@@ -412,6 +428,12 @@ export default function Monitor3D(props: Props) {
         if (followXZ) label.position.set(followXZ[0], 4.6, followXZ[1]);
       }
 
+      // Debug/QA hook: the positions actually drawn this frame (read by automated motion checks).
+      (window as unknown as { __dangote?: unknown }).__dangote = {
+        t: tv, now, players: [...figures].filter(([, f]) => f.fig.group.visible).map(([id, f]) => [id, f.last![0], f.last![1]]),
+        ball: [frame.ball.x, frame.ball.y, frame.ball.z], holder: frame.holder,
+        targets: frame.players.map((q) => [q.id, q.x, q.y, q.role]),
+      };
       const bx = wx(frame.ball.x), bz = wz(frame.ball.y), by = 0.3 + frame.ball.z;
       ball.position.set(bx, by, bz);
       for (let i = Math.min(trailLen, TRAIL - 1); i > 0; i--) {
