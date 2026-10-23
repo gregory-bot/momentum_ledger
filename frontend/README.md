@@ -61,6 +61,11 @@ a number badge above. Tactical, follow-ball and player cameras glide between eac
 to follow them. three.js lives in its own lazy chunk, and `Pitch3D` (SVG) covers loading and devices
 without WebGL. Deep link a camera with `?cam=tactical|ball|player|territory`.
 
+## Theater mode
+
+`⛶ theater` on the stage bar (or `?view=theater`) hides the side panels so the broadcast monitor fills
+the screen, for demos and big displays.
+
 ## Commentary and stadium sound
 
 `lib/audio.ts` is the commentary desk. When you press play (browsers only allow sound after a click):

@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { frameAt, lineupAt } from "../lib/tracking";
 import type { Pack, Side } from "../lib/types";
 import type { CamMode } from "./Pitch3D";
+import { timeScale } from "../hooks/usePlayback";
 
 interface Props {
   pack: Pack;
@@ -364,11 +365,12 @@ export default function Monitor3D(props: Props) {
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       const p = live.current;
-      const dt = Math.min(0.1, (now - last) / 1000);
+      const scale = timeScale();
+      const dt = Math.min(0.1, (now - last) / 1000) * scale;
       last = now;
       // The app clock ticks ~30×/s; interpolate between ticks so motion is smooth at 60 fps.
       if (p.t !== propT) { propT = p.t; propAt = now; }
-      const tv = p.playing ? propT + Math.min(0.05, (now - propAt) / 1000) * p.speed : propT;
+      const tv = p.playing ? propT + Math.min(0.05, (now - propAt) / 1000) * p.speed * scale : propT;
       const minute = Math.floor(tv / 60);
       if (minute !== slotMinute) {
         slots = lineupAt(pack.meta, pack.events, tv);

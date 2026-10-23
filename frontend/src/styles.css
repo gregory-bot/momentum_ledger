@@ -138,8 +138,18 @@ code, pre { font-family: var(--mono); }
   .control .side { overflow-y: auto; }
 }
 
+/* theater mode: the pitch fills the screen */
+.control.theater { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage"; }
+.control.theater .rundown, .control.theater .side, .control.theater .meters { display: none; }
+.control.theater .screen { aspect-ratio: auto; height: max(320px, calc(100vh - 290px)); }
+
 .rundown .scroll { list-style: none; margin: 0; padding: 0; overflow-y: auto; max-height: 420px; display: flex; flex-direction: column; gap: 2px; }
-@media (min-width: 1100px) { .rundown .scroll { max-height: none; flex: 1; } }
+@media (min-width: 1100px) { /* theater mode: the pitch fills the screen */
+.control.theater { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage"; }
+.control.theater .rundown, .control.theater .side, .control.theater .meters { display: none; }
+.control.theater .screen { aspect-ratio: auto; height: max(320px, calc(100vh - 290px)); }
+
+.rundown .scroll { max-height: none; flex: 1; } }
 .rd-item { display: grid; grid-template-columns: 1fr auto; border-radius: 6px; border: 1px solid transparent; content-visibility: auto; contain-intrinsic-size: 64px; }
 .rd-item:hover { background: var(--panel-2); }
 .rd-item.active { border-color: var(--accent); background: var(--accent-soft); }
