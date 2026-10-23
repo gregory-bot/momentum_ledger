@@ -23,6 +23,9 @@ const WEBGL = (() => {
 const CAM_PARAM = new URLSearchParams(window.location.search).get("cam");
 const INITIAL_CAM: CamMode = CAM_PARAM === "ball" || CAM_PARAM === "player" || CAM_PARAM === "territory" ? CAM_PARAM : "tactical";
 
+// ?view=theater opens with the pitch filling the screen.
+const INITIAL_THEATER = new URLSearchParams(window.location.search).get("view") === "theater";
+
 const VERB: Record<string, string> = {
   pass: "passes", carry: "carries", shot: "shoots", tackle: "tackles", interception: "intercepts",
   pressure: "presses", possession_change: "wins it", goal: "SCORES", substitution: "comes on",
@@ -56,6 +59,7 @@ export function ControlRoom(p: Props) {
   const { pack, pb } = p;
   const [mode, setMode] = useState<CamMode>(INITIAL_CAM);
   const [sound, setSound] = useState(() => audio.enabled);
+  const [theater, setTheater] = useState(INITIAL_THEATER);
   const [followId, setFollowId] = useState<string | null>(p.viewer.player || null);
   const snap = snapshotAt(pack, pb.t);
   const { last } = pitchAt(pack, pb.t);
@@ -65,7 +69,7 @@ export function ControlRoom(p: Props) {
   const m = snap.momentum;
 
   return (
-    <div className="control">
+    <div className={`control ${theater ? "theater" : ""}`}>
       <Rundown aired={aired} selectedId={p.selected?.id} onSelect={p.onSelect} onSeek={pb.seek} />
 
       <section className="stage" aria-label="Broadcast">
@@ -78,6 +82,10 @@ export function ControlRoom(p: Props) {
             ))}
           </div>
           <div className="stage-right">
+            <button type="button" className={`ghost small ${theater ? "on" : ""}`} aria-pressed={theater}
+              title={theater ? "Show panels" : "Theater mode: pitch fills the screen"} onClick={() => setTheater((v) => !v)}>
+              {theater ? "⤡ panels" : "⛶ theater"}
+            </button>
             <button type="button" className={`ghost small audio-chip ${sound ? "on" : ""}`} aria-pressed={sound}
               title={sound ? "Commentary and crowd on" : "Commentary and crowd off"}
               onClick={() => { const on = !sound; setSound(on); audio.setEnabled(on); try { localStorage.setItem("dangote.audio", on ? "1" : "0"); } catch { /* private mode */ } }}>

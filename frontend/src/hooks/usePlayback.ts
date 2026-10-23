@@ -13,6 +13,10 @@ export interface Playback {
 
 const FRAME_MS = 1000 / 30; // the clock re-renders at most 30 times a second
 
+/** Slow-motion capture: recording tools set window.__dangoteTimeScale (e.g. 0.25) so every
+ * animation runs slower in real time, then speed the video back up. 1 in normal use. */
+export const timeScale = () => (window as unknown as { __dangoteTimeScale?: number }).__dangoteTimeScale ?? 1;
+
 /** A local "theatre clock" over the match. Pausing, scrubbing and speed changes cost nothing. */
 export function usePlayback(duration: number, initial = 0, autoplay = false): Playback {
   const [t, setT] = useState(initial);
@@ -31,7 +35,7 @@ export function usePlayback(duration: number, initial = 0, autoplay = false): Pl
     ref.current.last = performance.now();
     const step = (now: number) => {
       const r = ref.current;
-      r.t = Math.min(duration, r.t + ((now - r.last) / 1000) * speed);
+      r.t = Math.min(duration, r.t + ((now - r.last) / 1000) * speed * timeScale());
       r.last = now;
       if (now - r.painted >= FRAME_MS || r.t >= duration) {
         r.painted = now;
