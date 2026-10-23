@@ -152,7 +152,9 @@ code, pre { font-family: var(--mono); }
 .rd-jump:hover { color: var(--accent); }
 
 .stage { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.stage-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.stage-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stage-right { display: flex; align-items: center; gap: 8px; }
+.audio-chip.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 .rec { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; padding: 3px 10px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--panel); }
 .rec::before { content: "● "; color: var(--faint); }
 .rec.on::before { color: var(--red); animation: blink 1.4s infinite; }

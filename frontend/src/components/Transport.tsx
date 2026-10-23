@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { Playback } from "../hooks/usePlayback";
+import { audio } from "../lib/audio";
 import { clockOf, minuteOf } from "../lib/derive";
 import { KIND_LABELS } from "../lib/labels";
 import type { Overlay } from "../lib/types";
@@ -26,7 +27,7 @@ export function Transport({ pb, duration, overlays }: { pb: Playback; duration: 
   const pct = (100 * pb.t) / duration;
   return (
     <div className="transport">
-      <button type="button" className="play" onClick={pb.toggle} aria-label={pb.playing ? "Pause" : "Play"}>
+      <button type="button" className="play" onClick={() => { audio.unlock(); pb.toggle(); }} aria-label={pb.playing ? "Pause" : "Play"}>
         {pb.playing ? (
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg>
         ) : (
