@@ -5,6 +5,7 @@ import { Pitch3D, type CamMode } from "../components/Pitch3D";
 import { Rundown } from "../components/Rundown";
 import { ViewerModes } from "../components/ViewerModes";
 import type { Playback } from "../hooks/usePlayback";
+import { audio } from "../lib/audio";
 import { airedAt, clockOf, onAirAt, pitchAt, snapshotAt } from "../lib/derive";
 import type { Overlay, Pack, PackEvent, Viewer } from "../lib/types";
 
@@ -54,6 +55,7 @@ interface Props {
 export function ControlRoom(p: Props) {
   const { pack, pb } = p;
   const [mode, setMode] = useState<CamMode>(INITIAL_CAM);
+  const [sound, setSound] = useState(() => audio.enabled);
   const [followId, setFollowId] = useState<string | null>(p.viewer.player || null);
   const snap = snapshotAt(pack, pb.t);
   const { last } = pitchAt(pack, pb.t);
@@ -75,7 +77,14 @@ export function ControlRoom(p: Props) {
                 onClick={() => setMode(k)}>{label}</button>
             ))}
           </div>
-          <span className={`rec ${pb.playing ? "on" : ""}`}>{clockOf(pb.t)}</span>
+          <div className="stage-right">
+            <button type="button" className={`ghost small audio-chip ${sound ? "on" : ""}`} aria-pressed={sound}
+              title={sound ? "Commentary and crowd on" : "Commentary and crowd off"}
+              onClick={() => { const on = !sound; setSound(on); audio.setEnabled(on); try { localStorage.setItem("dangote.audio", on ? "1" : "0"); } catch { /* private mode */ } }}>
+              {sound ? "🔊 audio on" : "🔈 audio off"}
+            </button>
+            <span className={`rec ${pb.playing ? "on" : ""}`}>{clockOf(pb.t)}</span>
+          </div>
         </div>
         <div className="screen-wrap">
           <div className="screen">

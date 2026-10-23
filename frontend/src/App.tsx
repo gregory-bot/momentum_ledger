@@ -5,6 +5,7 @@ import { Transport } from "./components/Transport";
 import { usePack } from "./hooks/usePack";
 import { usePlayback } from "./hooks/usePlayback";
 import { api } from "./lib/api";
+import { audio } from "./lib/audio";
 import { airedAt, minuteOf, snapshotAt } from "./lib/derive";
 import type { AppConfig, Overlay, Viewer } from "./lib/types";
 import { ControlRoom } from "./views/ControlRoom";
@@ -71,11 +72,25 @@ export default function App() {
     setTab("trust");
   }, []);
 
+  useEffect(() => {
+    if (pack) audio.setRoster([...pack.meta.home.players, ...pack.meta.home.bench, ...pack.meta.away.players, ...pack.meta.away.bench]);
+  }, [pack]);
+  // Commentary desk + stadium sound follow the app clock, on every tab.
+  useEffect(() => {
+    if (pack) audio.update(pack.events, pb.t, pb.playing, pb.speed, viewer.lang);
+  }, [pack, pb.t, pb.playing, pb.speed, viewer.lang]);
+  const latestAired = pack ? airedAt(pack.overlays, pb.t)[0] : undefined;
+  useEffect(() => {
+    // Only read lines as they air (not ones skipped over by a scrub).
+    if (latestAired && pb.playing && pb.t - latestAired.trigger.t < 6 * Math.max(1, pb.speed)) audio.moment(latestAired, pb.speed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latestAired?.id]);
+
   // Keyboard: space = play/pause, ←/→ = 30s, 1-3 = tabs.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!pack || (e.target as HTMLElement).closest("input, textarea, select")) return;
-      if (e.key === " ") { e.preventDefault(); pb.toggle(); }
+      if (e.key === " ") { e.preventDefault(); audio.unlock(); pb.toggle(); }
       else if (e.key === "ArrowRight") pb.seek(pb.t + 30);
       else if (e.key === "ArrowLeft") pb.seek(pb.t - 30);
       else if (["1", "2", "3"].includes(e.key)) setTab(TABS[Number(e.key) - 1]);

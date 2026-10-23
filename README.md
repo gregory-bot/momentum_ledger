@@ -70,7 +70,9 @@ The web app (`frontend/`) is a broadcast control room:
 | **Match pack** | Average-position lineups, live team stats, shot map (area = xG), **xG race** and **momentum river** charts, and a sortable player table, all recomputed for the current minute. |
 | **Trust lab** | The verification pipeline with live counts, the full trust log (every blocked draft and why), and the **Fact-check desk**: paste any sentence, pick a minute, and see every number traced to a fact, or flagged. |
 
-Also: **Compare 3 viewers** (three verified tellings of the same match, synced to the clock), keyboard
+Press play and a **commentator talks**: verified moments are read aloud as they air (in the viewer's
+language where the device has a voice), play-by-play calls fill the gaps, and a synthesized crowd,
+kicks and whistles follow the match. Also: **Compare 3 viewers** (three verified tellings of the same match, synced to the clock), keyboard
 control (space, ←/→, 1–3), and deep links (`?scenario=press-trap&t=62&club=away&lang=sw&autoplay=1`).
 Typography is Consolas throughout (Inconsolata where Consolas isn't installed).
 

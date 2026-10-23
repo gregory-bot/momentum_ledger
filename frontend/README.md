@@ -61,6 +61,19 @@ a number badge above. Tactical, follow-ball and player cameras glide between eac
 to follow them. three.js lives in its own lazy chunk, and `Pitch3D` (SVG) covers loading and devices
 without WebGL. Deep link a camera with `?cam=tactical|ball|player|territory`.
 
+## Commentary and stadium sound
+
+`lib/audio.ts` is the commentary desk. When you press play (browsers only allow sound after a click):
+
+- **Verified moments are read aloud** as they air, using the device's best voice for the viewer's
+  language (natural/neural voices preferred). Goals and headline moments cut in, faster and higher.
+- **Play-by-play** fills the gaps at 1×–4× ("Mensah… to Vale", "Shaw shoots… saved!"), using only
+  names and actions from the events, never numbers, so nothing unverified is ever said.
+- **Stadium sound** is synthesized with WebAudio: a crowd bed that swells with excitement, kicks on
+  passes and shots, whistles for kick-off, half-time and full-time, and a roar for goals.
+
+Pausing stops speech; scrubbing re-seeks without replaying sounds; the `audio on/off` chip is remembered.
+
 ## Motion QA
 
 Player motion is checked, not eyeballed. Players move at human speeds in match time (≤ 8.5 m/s off the
