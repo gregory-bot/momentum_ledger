@@ -4,6 +4,7 @@
     python -m dangote narrate --persona analyst --lang es   print verified overlays for a viewer
     python -m dangote trust                                 print every blocked draft and why
     python -m dangote publish --speed 30                    stream events into Azure Event Hubs
+    python -m dangote export --out ../frontend/public/static-api   static JSON for GitHub Pages
     python -m dangote serve                                 run the API on :8010
 """
 
@@ -76,6 +77,13 @@ def cmd_publish(args: argparse.Namespace) -> None:
     print(f"published {n} events for {meta.match_id} to {settings.eventhub_name}")
 
 
+def cmd_export(args: argparse.Namespace) -> None:
+    from .export_static import export
+
+    sizes = export(Path(args.out))
+    print(f"exported {sizes['files']} files ({sizes['bytes'] / 1e6:.1f} MB) to {args.out}")
+
+
 def cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
@@ -108,6 +116,10 @@ def main() -> None:
     pub.add_argument("--seed", type=int)
     pub.add_argument("--scenario", default="press-trap")
     pub.set_defaults(fn=cmd_publish)
+
+    ex = sub.add_parser("export", help="write a static JSON export for hosting the web app without a server")
+    ex.add_argument("--out", default="../frontend/public/static-api")
+    ex.set_defaults(fn=cmd_export)
 
     sv = sub.add_parser("serve")
     sv.add_argument("--host", default="0.0.0.0")

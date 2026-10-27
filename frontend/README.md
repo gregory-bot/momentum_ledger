@@ -10,6 +10,10 @@ npm run dev        # http://localhost:5173 (proxies /api and /mcp to http://loca
 npm run build      # strict type-check + production build to dist/
 ```
 
+Static mode (what GitHub Pages serves): `python -m dangote export --out ../frontend/public/static-api` in
+`backend/`, then `VITE_STATIC=1 VITE_BASE=/momentum_ledger/ npm run build`. The app plays the
+pre-verified export with no server; only the free-text fact-check needs the live API.
+
 Point the dev proxy elsewhere with `VITE_API_PROXY=http://host:port npm run dev`; for a separately hosted API, build with `VITE_API_URL=https://api.example.com`.
 
 ## How it works

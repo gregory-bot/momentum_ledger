@@ -22,7 +22,8 @@ Configuration is optional: copy `.env.example` to `.env` to enable Azure service
 | `data/` | The three storylines as JSON (`python -m dangote simulate --scenario <id>`). |
 | `functions/` | **Azure Functions** app: the serverless production worker. On each Event Hubs batch it stores events in Cosmos DB, replays the ledger and writes verified overlays. The deploy script copies `dangote/` in. |
 | `infra/` | **Bicep**: Event Hubs, Cosmos DB, Azure OpenAI, Translator, Functions, Container Apps and App Insights in one command. |
-| `scripts/deploy.sh` | Provisions `infra/`, publishes `functions/` and deploys the container. |
+| `scripts/deploy-containerapp.sh` | Fastest path: `az login`, then one command builds the image in Azure and runs the whole app on Azure Container Apps. |
+| `scripts/deploy.sh` | Full footprint: provisions `infra/`, publishes `functions/` and deploys the container. |
 
 ## Module map
 
@@ -40,6 +41,7 @@ Configuration is optional: copy `.env.example` to `.env` to enable Azure service
 | `factcheck.py` | Fact-check any sentence against the ledger at a minute. |
 | `mcp.py` | MCP server: 9 tools over Streamable HTTP. |
 | `server.py` | FastAPI app; serves `frontend/dist` when it exists. |
+| `export_static.py` | `python -m dangote export`: pre-verified JSON export so the web app can run on GitHub Pages. |
 
 ## Adding a storyline
 

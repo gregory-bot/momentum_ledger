@@ -52,6 +52,7 @@ export interface AppConfig {
   languages: Record<string, string>;
   services: Record<string, string>;
   scenarios: Scenario[];
+  static?: boolean;
 }
 
 export interface PackEvent {

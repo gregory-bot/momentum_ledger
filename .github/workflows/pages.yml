@@ -1,0 +1,59 @@
+# Builds the web app in static mode (pre-verified JSON from the real pipeline) and deploys to GitHub Pages.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend
+        run: pip install -r backend/requirements.txt
+      - name: Export verified match data
+        working-directory: backend
+        run: python -m dangote export --out ../frontend/public/static-api
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build web app (static mode)
+        working-directory: frontend
+        env:
+          # With the repo variable DANGOTE_API_URL set (e.g. the Azure Container Apps URL), the site
+          # talks to the live API; otherwise it plays the static, pre-verified export.
+          VITE_API_URL: ${{ vars.DANGOTE_API_URL }}
+          VITE_STATIC: ${{ vars.DANGOTE_API_URL == '' && '1' || '0' }}
+          VITE_BASE: /${{ github.event.repository.name }}/
+        run: |
+          npm ci
+          npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
