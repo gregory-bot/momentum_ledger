@@ -9,7 +9,7 @@ matters, **proves every claim against the raw event ledger before it goes on air
 verified story differently for every fan, in any language.
 
 **[▶ Live demo](https://gregory-bot.github.io/momentum_ledger/)** ·
-**[🎬 Demo video (1:42)](docs/media/dangote-demo.mp4)** ·
+**[🎬 Demo video (YouTube, 1:43)](https://youtu.be/BqJEUe2ESzk)** ·
 **[How we use Azure](#how-we-use-microsoft-azure)** ·
 **[Run it](#quick-start)**
 
@@ -19,7 +19,7 @@ verified story differently for every fan, in any language.
 *Built for the **Inside the Game: Developer Hackathon** (Microsoft × Premier League)*
 *Challenge: **The Synthetic Match Insights Engine for Premier League Studio***
 
-<a href="docs/media/dangote-demo.mp4"><img src="docs/media/preview.gif" alt="dangote: follow-ball camera during a live synthetic match" width="760"></a>
+<a href="https://youtu.be/BqJEUe2ESzk"><img src="docs/media/preview.gif" alt="dangote: follow-ball camera during a live synthetic match" width="760"></a>
 
 `Azure OpenAI` · `Azure AI Translator` · `Event Hubs` · `Azure Functions` · `Cosmos DB` · `Container Apps` · `Bicep` · `MCP` · `Python` · `FastAPI` · `React` · `TypeScript` · `three.js`
 
